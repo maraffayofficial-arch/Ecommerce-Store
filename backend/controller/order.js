@@ -14,7 +14,7 @@ const placeOrder = async (req, res) => {
             productId: i.productId._id,
             title: i.productId.title,
             price: i.productId.price,
-            image: i.productId.image,
+            image: i.productId.images?.[0] || "",
             quantity: i.quantity
         }))
 

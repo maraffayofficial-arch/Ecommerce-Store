@@ -13,7 +13,7 @@ const products = [
     price: 350,
     weight: "500g",
     category: "achar",
-    image: "https://images.unsplash.com/photo-1626203219-786e65af5f69?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1626203219-786e65af5f69?w=600&auto=format&fit=crop"]
   },
   {
     title: "Mirch ka Achar",
@@ -21,7 +21,7 @@ const products = [
     price: 280,
     weight: "400g",
     category: "achar",
-    image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&auto=format&fit=crop"]
   },
   {
     title: "Mixed Vegetable Achar",
@@ -29,7 +29,7 @@ const products = [
     price: 320,
     weight: "600g",
     category: "achar",
-    image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&auto=format&fit=crop"]
   },
   {
     title: "Lemon Achar",
@@ -37,7 +37,7 @@ const products = [
     price: 250,
     weight: "400g",
     category: "achar",
-    image: "https://images.unsplash.com/photo-1519996529931-28324d5a630e?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1519996529931-28324d5a630e?w=600&auto=format&fit=crop"]
   },
   {
     title: "Lahsun ka Achar",
@@ -45,7 +45,7 @@ const products = [
     price: 300,
     weight: "350g",
     category: "achar",
-    image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop"]
   },
   {
     title: "Pudina Chatni",
@@ -53,7 +53,7 @@ const products = [
     price: 180,
     weight: "250g",
     category: "chatni",
-    image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&auto=format&fit=crop"]
   },
   {
     title: "Imli Chatni",
@@ -61,7 +61,7 @@ const products = [
     price: 200,
     weight: "300g",
     category: "chatni",
-    image: "https://images.unsplash.com/photo-1596097635121-14b63b7a0c19?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1596097635121-14b63b7a0c19?w=600&auto=format&fit=crop"]
   },
   {
     title: "Garlic Chili Sauce",
@@ -69,7 +69,7 @@ const products = [
     price: 220,
     weight: "300ml",
     category: "sauce",
-    image: "https://images.unsplash.com/photo-1608500218890-c4f9cae0c9a9?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1608500218890-c4f9cae0c9a9?w=600&auto=format&fit=crop"]
   },
   {
     title: "Gajar Shalgam Achar",
@@ -77,7 +77,7 @@ const products = [
     price: 290,
     weight: "600g",
     category: "achar",
-    image: "https://images.unsplash.com/photo-1552189434-be4da2aa4c08?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1552189434-be4da2aa4c08?w=600&auto=format&fit=crop"]
   },
   {
     title: "Keri Chatni",
@@ -85,7 +85,7 @@ const products = [
     price: 160,
     weight: "250g",
     category: "chatni",
-    image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop"]
   },
   {
     title: "Adrak Lehsun Chatni",
@@ -93,7 +93,7 @@ const products = [
     price: 190,
     weight: "300g",
     category: "chatni",
-    image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&auto=format&fit=crop"]
   },
   {
     title: "Zeera Powder",
@@ -101,7 +101,7 @@ const products = [
     price: 150,
     weight: "200g",
     category: "spices",
-    image: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop"]
   },
   {
     title: "Garam Masala Blend",
@@ -109,7 +109,7 @@ const products = [
     price: 200,
     weight: "150g",
     category: "spices",
-    image: "https://images.unsplash.com/photo-1518110925495-5fe2fda0442c?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1518110925495-5fe2fda0442c?w=600&auto=format&fit=crop"]
   },
   {
     title: "Dhaniya Powder",
@@ -117,7 +117,7 @@ const products = [
     price: 130,
     weight: "200g",
     category: "spices",
-    image: "https://images.unsplash.com/photo-1506368083636-6defb67639b0?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1506368083636-6defb67639b0?w=600&auto=format&fit=crop"]
   },
   {
     title: "Mango Murabba",
@@ -125,7 +125,7 @@ const products = [
     price: 380,
     weight: "500g",
     category: "sweet",
-    image: "https://images.unsplash.com/photo-1601924638867-3a6de6b7a500?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1601924638867-3a6de6b7a500?w=600&auto=format&fit=crop"]
   },
   {
     title: "Amla Murabba",
@@ -133,7 +133,7 @@ const products = [
     price: 350,
     weight: "500g",
     category: "sweet",
-    image: "https://images.unsplash.com/photo-1596097635121-14b63b7a0c19?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1596097635121-14b63b7a0c19?w=600&auto=format&fit=crop"]
   },
   {
     title: "Tomato Ketchup Desi Style",
@@ -141,7 +141,7 @@ const products = [
     price: 240,
     weight: "350ml",
     category: "sauce",
-    image: "https://images.unsplash.com/photo-1608500218890-c4f9cae0c9a9?w=600&auto=format&fit=crop"
+    images: ["https://images.unsplash.com/photo-1608500218890-c4f9cae0c9a9?w=600&auto=format&fit=crop"]
   }
 ]
 

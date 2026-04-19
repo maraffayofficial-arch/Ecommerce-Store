@@ -13,7 +13,7 @@ const CardElements = ({ item }) => {
         onClick={() => navigate(`/product/${item._id}`)}>
 
         <figure>
-          <img src={item.image} className="w-full h-60 object-cover" alt={item.title} />
+          <img src={item.images?.[0]} className="w-full h-60 object-cover" alt={item.title} />
         </figure>
 
         <div className="card-body">

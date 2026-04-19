@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../context/AuthProvider'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import toast from 'react-hot-toast'
-import { FaTrash, FaEdit, FaSignOutAlt } from 'react-icons/fa'
+import { FaTrash, FaEdit, FaSignOutAlt, FaCloudUploadAlt, FaTimes } from 'react-icons/fa'
 
-const emptyForm = { title: '', discription: '', price: '', weight: '', category: 'achar', image: '' }
+const emptyForm = { title: '', discription: '', price: '', weight: '', category: 'achar' }
 
 const HomeAdmin = () => {
   const [authUser] = useAuth()
   const navigate = useNavigate()
+  const fileInputRef = useRef()
 
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
@@ -17,6 +18,11 @@ const HomeAdmin = () => {
   const [editId, setEditId] = useState(null)
   const [tab, setTab] = useState('products')
   const [loading, setLoading] = useState(false)
+
+  // Image state
+  const [selectedFiles, setSelectedFiles] = useState([])   // File objects for new upload
+  const [previews, setPreviews] = useState([])              // Preview URLs (blob or existing)
+  const [existingImages, setExistingImages] = useState([]) // Cloudinary URLs when editing
 
   const authHeader = { headers: { Authorization: `Bearer ${authUser?.token}` } }
 
@@ -46,19 +52,58 @@ const HomeAdmin = () => {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files)
+    const total = selectedFiles.length + files.length
+    if (total > 4) { toast.error("Maximum 4 images allowed"); return }
+    const newPreviews = files.map(f => URL.createObjectURL(f))
+    setSelectedFiles(prev => [...prev, ...files])
+    setPreviews(prev => [...prev, ...newPreviews])
+  }
+
+  const removePreview = (index) => {
+    // If editing, index may point to existing or new
+    const existingCount = existingImages.length
+    if (index < existingCount) {
+      setExistingImages(prev => prev.filter((_, i) => i !== index))
+      setPreviews(prev => prev.filter((_, i) => i !== index))
+    } else {
+      const newIdx = index - existingCount
+      setSelectedFiles(prev => prev.filter((_, i) => i !== newIdx))
+      setPreviews(prev => prev.filter((_, i) => i !== index))
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (previews.length === 0) { toast.error("Please upload at least 1 image"); return }
     setLoading(true)
     try {
+      const formData = new FormData()
+      formData.append("title", form.title)
+      formData.append("discription", form.discription)
+      formData.append("price", form.price)
+      formData.append("weight", form.weight)
+      formData.append("category", form.category)
+      selectedFiles.forEach(f => formData.append("images", f))
+
+      const multipartHeader = {
+        headers: { Authorization: `Bearer ${authUser?.token}`, "Content-Type": "multipart/form-data" }
+      }
+
       if (editId) {
-        await axios.put(`http://localhost:8000/product/${editId}`, form, authHeader)
+        await axios.put(`http://localhost:8000/product/${editId}`, formData, multipartHeader)
         toast.success("Product updated!")
         setEditId(null)
       } else {
-        await axios.post("http://localhost:8000/product", form, authHeader)
+        await axios.post("http://localhost:8000/product", formData, multipartHeader)
         toast.success("Product added!")
       }
+
       setForm(emptyForm)
+      setSelectedFiles([])
+      setPreviews([])
+      setExistingImages([])
       fetchProducts()
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to save product")
@@ -72,9 +117,11 @@ const HomeAdmin = () => {
       price: product.price,
       weight: product.weight,
       category: product.category,
-      image: product.image
     })
     setEditId(product._id)
+    setExistingImages(product.images || [])
+    setPreviews(product.images || [])
+    setSelectedFiles([])
     setTab('products')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -103,6 +150,14 @@ const HomeAdmin = () => {
       setOrders(prev => prev.filter(o => o._id !== id))
       toast.success("Order removed")
     } catch { toast.error("Failed to remove order") }
+  }
+
+  const cancelEdit = () => {
+    setEditId(null)
+    setForm(emptyForm)
+    setSelectedFiles([])
+    setPreviews([])
+    setExistingImages([])
   }
 
   const formatDateTime = (dateStr) => {
@@ -151,24 +206,28 @@ const HomeAdmin = () => {
             <div className='bg-white shadow-md rounded-xl p-6 mb-8'>
               <h2 className='text-xl font-bold mb-4 text-green-700'>{editId ? 'Edit Product' : 'Add New Product'}</h2>
               <form onSubmit={handleSubmit} className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+
                 <div>
                   <label className='text-sm font-semibold text-gray-600'>Product Title</label>
                   <input name="title" value={form.title} onChange={handleChange} required
                     placeholder='e.g. Aam ka Achar'
                     className='w-full border rounded-lg px-3 py-2 mt-1 outline-none focus:border-green-500' />
                 </div>
+
                 <div>
                   <label className='text-sm font-semibold text-gray-600'>Price (Rs.)</label>
                   <input name="price" value={form.price} onChange={handleChange} required type="number"
                     placeholder='e.g. 350'
                     className='w-full border rounded-lg px-3 py-2 mt-1 outline-none focus:border-green-500' />
                 </div>
+
                 <div>
-                  <label className='text-sm font-semibold text-gray-600'>Weight</label>
+                  <label className='text-sm font-semibold text-gray-600'>Weight / Volume</label>
                   <input name="weight" value={form.weight} onChange={handleChange} required
                     placeholder='e.g. 500g'
                     className='w-full border rounded-lg px-3 py-2 mt-1 outline-none focus:border-green-500' />
                 </div>
+
                 <div>
                   <label className='text-sm font-semibold text-gray-600'>Category</label>
                   <select name="category" value={form.category} onChange={handleChange}
@@ -177,28 +236,68 @@ const HomeAdmin = () => {
                     <option value="chatni">Chatni</option>
                     <option value="sweet">Sweet</option>
                     <option value="sauce">Sauce</option>
+                    <option value="spices">Spices</option>
                   </select>
                 </div>
-                <div className='md:col-span-2'>
-                  <label className='text-sm font-semibold text-gray-600'>Image URL</label>
-                  <input name="image" value={form.image} onChange={handleChange} required
-                    placeholder='https://...'
-                    className='w-full border rounded-lg px-3 py-2 mt-1 outline-none focus:border-green-500' />
-                </div>
+
                 <div className='md:col-span-2'>
                   <label className='text-sm font-semibold text-gray-600'>Description</label>
                   <textarea name="discription" value={form.discription} onChange={handleChange} required rows={3}
                     placeholder='Describe the product...'
                     className='w-full border rounded-lg px-3 py-2 mt-1 outline-none focus:border-green-500 resize-none' />
                 </div>
+
+                {/* Image Upload */}
+                <div className='md:col-span-2'>
+                  <label className='text-sm font-semibold text-gray-600'>
+                    Product Images <span className='text-gray-400 font-normal'>(up to 4 — 800×800px, max 5MB each)</span>
+                  </label>
+
+                  {/* Drop Zone */}
+                  <div
+                    onClick={() => fileInputRef.current.click()}
+                    className='mt-2 border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-green-500 transition-colors'>
+                    <FaCloudUploadAlt className='text-5xl text-gray-300 mx-auto mb-2' />
+                    <p className='text-gray-500 font-medium'>Click to upload or drag & drop</p>
+                    <p className='text-gray-400 text-sm mt-1'>JPG, PNG, WebP — max 5MB per image</p>
+                    <input ref={fileInputRef} type="file" accept="image/*" multiple
+                      onChange={handleFileChange} className='hidden' />
+                  </div>
+
+                  {/* Previews */}
+                  {previews.length > 0 && (
+                    <div className='flex gap-3 flex-wrap mt-4'>
+                      {previews.map((src, i) => (
+                        <div key={i} className='relative group'>
+                          <img src={src} alt={`preview ${i + 1}`}
+                            className='w-24 h-24 object-cover rounded-xl border-2 border-gray-200' />
+                          <button type='button' onClick={() => removePreview(i)}
+                            className='absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'>
+                            <FaTimes size={10} />
+                          </button>
+                          {i === 0 && (
+                            <span className='absolute bottom-1 left-1 bg-green-600 text-white text-xs px-1 rounded'>Main</span>
+                          )}
+                        </div>
+                      ))}
+                      {previews.length < 4 && (
+                        <button type='button' onClick={() => fileInputRef.current.click()}
+                          className='w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center text-gray-400 hover:border-green-500 hover:text-green-500 transition-colors text-3xl'>
+                          +
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className='md:col-span-2 flex gap-3'>
                   <button type='submit' disabled={loading}
-                    className='bg-green-700 text-white px-8 py-2 rounded-full font-semibold hover:bg-green-800 disabled:opacity-60'>
+                    className='bg-green-700 text-white px-8 py-2 rounded-full font-semibold hover:bg-green-800 disabled:opacity-60 cursor-pointer'>
                     {loading ? "Saving..." : editId ? "Update Product" : "Add Product"}
                   </button>
                   {editId && (
-                    <button type='button' onClick={() => { setEditId(null); setForm(emptyForm) }}
-                      className='border border-gray-400 text-gray-600 px-8 py-2 rounded-full font-semibold hover:bg-gray-100'>
+                    <button type='button' onClick={cancelEdit}
+                      className='border border-gray-400 text-gray-600 px-8 py-2 rounded-full font-semibold hover:bg-gray-100 cursor-pointer'>
                       Cancel
                     </button>
                   )}
@@ -211,7 +310,15 @@ const HomeAdmin = () => {
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
               {products.map(p => (
                 <div key={p._id} className='bg-white shadow-md rounded-xl overflow-hidden'>
-                  <img src={p.image} alt={p.title} className='w-full h-48 object-cover' />
+                  {/* Image strip */}
+                  <div className='relative'>
+                    <img src={p.images?.[0]} alt={p.title} className='w-full h-48 object-cover' />
+                    {p.images?.length > 1 && (
+                      <span className='absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full'>
+                        +{p.images.length - 1} more
+                      </span>
+                    )}
+                  </div>
                   <div className='p-4'>
                     <h3 className='font-bold text-lg'>{p.title}</h3>
                     <p className='text-green-700 font-semibold'>Rs. {p.price}</p>
@@ -219,11 +326,11 @@ const HomeAdmin = () => {
                     <p className='text-sm text-gray-600 mt-1 line-clamp-2'>{p.discription}</p>
                     <div className='flex gap-3 mt-3'>
                       <button onClick={() => handleEdit(p)}
-                        className='flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold hover:bg-blue-200'>
+                        className='flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold hover:bg-blue-200 cursor-pointer'>
                         <FaEdit /> Edit
                       </button>
                       <button onClick={() => handleDelete(p._id)}
-                        className='flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold hover:bg-red-200'>
+                        className='flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold hover:bg-red-200 cursor-pointer'>
                         <FaTrash /> Delete
                       </button>
                     </div>
@@ -252,9 +359,7 @@ const HomeAdmin = () => {
                       <span className={`text-sm px-3 py-1 rounded-full font-semibold capitalize ${statusColors[order.status]}`}>
                         {order.status}
                       </span>
-                      <select
-                        value={order.status}
-                        onChange={e => updateStatus(order._id, e.target.value)}
+                      <select value={order.status} onChange={e => updateStatus(order._id, e.target.value)}
                         className='border rounded-lg px-2 py-1 text-sm bg-white outline-none'>
                         <option value="pending">Pending</option>
                         <option value="processing">Processing</option>
@@ -263,7 +368,7 @@ const HomeAdmin = () => {
                         <option value="cancelled">Cancelled</option>
                       </select>
                       <button onClick={() => removeOrder(order._id)}
-                        className='flex items-center gap-1 bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-semibold hover:bg-red-200'>
+                        className='flex items-center gap-1 bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-semibold hover:bg-red-200 cursor-pointer'>
                         <FaTrash size={12} /> Remove
                       </button>
                     </div>

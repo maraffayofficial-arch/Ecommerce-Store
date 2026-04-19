@@ -10,10 +10,9 @@ const SpecialMenuCards = ({ item }) => {
         <div className='flex flex-col rounded-2xl shadow-lg overflow-hidden bg-base-100 hover:shadow-xl transition-shadow duration-300'>
             <div className='bg-orange-500 flex items-center justify-center p-6 h-52'>
                 <img
-                    src={item.image}
+                    src={item.images?.[0]}
                     alt={item.title}
-                    className='h-40 w-40 object-cover rounded-full border-4 border-white shadow-md'
-                />
+                    className='h-40 w-40 object-cover rounded-full border-4 border-white shadow-md' />
             </div>
             <div className='p-6 text-center flex flex-col gap-2 flex-1'>
                 <h2 className='font-bold text-2xl'>{item.title}</h2>

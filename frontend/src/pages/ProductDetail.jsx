@@ -16,11 +16,13 @@ const ProductDetail = () => {
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
+  const [activeImg, setActiveImg] = useState(0)
 
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true)
       setQty(1)
+      setActiveImg(0)
       try {
         const [productRes, allRes] = await Promise.all([
           axios.get(`http://localhost:8000/product/${id}`),
@@ -49,6 +51,8 @@ const ProductDetail = () => {
 
   if (!product) return null
 
+  const images = product.images || []
+
   return (
     <>
       <Navbar />
@@ -57,13 +61,25 @@ const ProductDetail = () => {
         {/* Product Detail Card */}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-8 bg-base-100 shadow-lg rounded-2xl p-6 sm:p-10'>
 
-          {/* Image */}
-          <div className='flex items-center justify-center'>
-            <img
-              src={product.image}
-              alt={product.title}
-              className='w-full max-h-96 object-cover rounded-xl shadow-md'
-            />
+          {/* Image Gallery */}
+          <div className='flex flex-col gap-3'>
+            <div className='rounded-xl overflow-hidden bg-base-200'>
+              <img
+                src={images[activeImg]}
+                alt={product.title}
+                className='w-full h-80 sm:h-96 object-cover'
+              />
+            </div>
+            {images.length > 1 && (
+              <div className='flex gap-2 flex-wrap'>
+                {images.map((img, i) => (
+                  <button key={i} onClick={() => setActiveImg(i)}
+                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${activeImg === i ? 'border-green-600 scale-105' : 'border-transparent opacity-70 hover:opacity-100'}`}>
+                    <img src={img} alt={`view ${i + 1}`} className='w-full h-full object-cover' />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Details */}
@@ -78,40 +94,28 @@ const ProductDetail = () => {
             <p className='text-green-700 text-3xl font-bold'>Rs. {product.price}</p>
 
             <div className='flex gap-3 flex-wrap'>
-              <span className='bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold capitalize'>
-                {product.category}
-              </span>
-              <span className='bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold'>
-                {product.weight}
-              </span>
+              <span className='bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold capitalize'>{product.category}</span>
+              <span className='bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold'>{product.weight}</span>
             </div>
 
             <p className='text-gray-500 text-base leading-relaxed'>{product.discription}</p>
 
-            {/* Qty selector */}
             <div className='flex items-center gap-3 mt-1'>
               <span className='font-semibold text-sm text-gray-500'>Quantity:</span>
               <div className='flex items-center border border-base-300 rounded-full overflow-hidden'>
-                <button onClick={() => setQty(q => Math.max(1, q - 1))}
-                  className='px-4 py-2 bg-base-200 hover:bg-base-300 font-bold'>−</button>
+                <button onClick={() => setQty(q => Math.max(1, q - 1))} className='px-4 py-2 bg-base-200 hover:bg-base-300 font-bold'>−</button>
                 <span className='px-5 font-semibold'>{qty}</span>
-                <button onClick={() => setQty(q => q + 1)}
-                  className='px-4 py-2 bg-base-200 hover:bg-base-300 font-bold'>+</button>
+                <button onClick={() => setQty(q => q + 1)} className='px-4 py-2 bg-base-200 hover:bg-base-300 font-bold'>+</button>
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className='flex flex-wrap gap-4 mt-2'>
-              <button
-                onClick={() => addToCart(product._id, qty)}
-                className='bg-orange-500 text-white px-8 py-3 rounded-full font-bold text-base hover:bg-orange-600 cursor-pointer transition-colors'
-              >
+              <button onClick={() => addToCart(product._id, qty)}
+                className='bg-orange-500 text-white px-8 py-3 rounded-full font-bold text-base hover:bg-orange-600 cursor-pointer transition-colors'>
                 Add to Cart
               </button>
-              <button
-                onClick={() => navigate('/products')}
-                className='border-2 border-green-700 text-green-700 px-8 py-3 rounded-full font-bold text-base hover:bg-green-50 cursor-pointer transition-colors'
-              >
+              <button onClick={() => navigate('/products')}
+                className='border-2 border-green-700 text-green-700 px-8 py-3 rounded-full font-bold text-base hover:bg-green-50 cursor-pointer transition-colors'>
                 ← Back
               </button>
             </div>
@@ -122,17 +126,13 @@ const ProductDetail = () => {
         {related.length > 0 && (
           <div className='mt-14'>
             <h2 className='text-2xl font-bold mb-6'>
-              You might also like
-              <span className='text-orange-500 capitalize ml-2'>({product.category})</span>
+              You might also like <span className='text-orange-500 capitalize'>({product.category})</span>
             </h2>
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
               {related.map(item => (
                 <CardElements item={item} key={item._id} />
               ))}
             </div>
-            {related.length === 0 && (
-              <p className='text-gray-400 text-center py-8'>No related products found.</p>
-            )}
           </div>
         )}
 
