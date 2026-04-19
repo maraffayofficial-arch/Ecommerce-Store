@@ -1,17 +1,27 @@
-
 import express from 'express'
-const app=express()
-app.get('/',()=>{
-    console.log('Get got executed')
+import dotenv from "dotenv"
+import db_connection from './db_connection.js'
+import productrouter from './routes/product.js'
+import cors from "cors"
+import userRouter from './routes/user.js'
+import cartRouter from './routes/cart.js'
+import orderRouter from './routes/order.js'
+
+const app = express()
+
+dotenv.config()
+const PORT = process.env.PORT || 8000
+db_connection()
+
+app.use(cors())
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
+app.use("/product", productrouter)
+app.use("/user", userRouter)
+app.use("/cart", cartRouter)
+app.use("/order", orderRouter)
+
+app.listen(PORT, () => {
+    console.log(`App running on port ${PORT}`)
 })
-
-
-
-// https://github.com/maraffayofficial-arch/Ecommerce-store.git
-app.listen(9000,()=>{
-    console.log('Connect to port 9000')
-})
-
-
-
-

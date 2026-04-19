@@ -1,30 +1,46 @@
 import React from 'react'
+import { FaStar } from "react-icons/fa"
+import { Link, useNavigate } from 'react-router-dom'
+import { useCart } from '../context/CartProvider'
 
-const CardElements = ({item}) => {
- 
- console.log(item.image)
+const CardElements = ({ item }) => {
+  const { addToCart } = useCart()
+  const navigate = useNavigate()
 
+  return (
+    <div className='text-black flex justify-center items-center h-full px-3 py-3'>
+      <div className="card bg-white w-full max-w-[440px] h-auto hover:scale-105 duration-300 shadow-[0_0_10px_black] cursor-pointer"
+        onClick={() => navigate(`/product/${item._id}`)}>
 
+        <figure>
+          <img src={item.image} className="w-full h-60 object-cover" alt={item.title} />
+        </figure>
 
-    return (
-    <>
-    <div className='text-black flex py-3 '>
-        <div className="card bg-white w-110 h-120 mx-3 hover:scale-105 duration-300 shadow-[0_0_10px_black]">
-  <figure>
-    <img
-      src={item.image}   className="w-full h-88 object-cover"   alt="Image" />
-  </figure>
-  <div className="card-body">
-    <h2 className="card-title">{item.title}</h2>
-    <p>{item.discription}</p>
-    <div className="card-actions [&>button]:rounded-full [&>button]:text-black [&>button]:bg-white [&>button]:hover:bg-orange-500 [&>button]:border-orange-500 justify-between">
-      <button className="btn btn-primary">${item.price}</button>
-      <button className="btn btn-primary">Buy now</button>
+        <div className="card-body">
+          <h2 className="card-title text-lg">{item.title}</h2>
+          <p className='flex gap-1 text-yellow-500 text-sm'>
+            <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
+          </p>
+          <p className='text-sm text-gray-600 line-clamp-2'>{item.discription}</p>
+          <p className='font-bold text-green-700 text-lg'>Rs. {item.price}</p>
+
+          <div className="card-actions justify-between mt-2"
+            onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => addToCart(item._id)}
+              className="btn btn-sm bg-orange-500 text-white border-none hover:bg-orange-600 rounded-full px-4"
+            >
+              Add to Cart
+            </button>
+            <Link to={`/product/${item._id}`}>
+              <button className="btn btn-sm bg-green-700 text-white border-none hover:bg-green-800 rounded-full px-4">
+                View Details
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-    </div>
-    </>
   )
 }
 

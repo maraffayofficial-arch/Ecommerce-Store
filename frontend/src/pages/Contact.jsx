@@ -1,49 +1,73 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from "react-hook-form"
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 
 const Contact = () => {
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm()
-
-    const onSubmit = (data) => console.log(data)
+    const { register, handleSubmit, formState: { errors }, reset } = useForm()
+    const onSubmit = (data) => { console.log(data); reset() }
 
     return (
         <>
-            <div className='flex h-screen justify-center items-center'>
-                <form className=' [&>div>h1]:text-lg w-150 p-2' onSubmit={handleSubmit(onSubmit)} action="">
-                <h1 className='text-4xl font-bold  ' >Contact us</h1>
-                    {/* name  */}
-                    <div className='mt-2'>
-                        <h1>Name</h1>
-                        <input type="text" {...register("name", { required: true })} className='border outline-none py-1 pl-1 w-full' placeholder='Enter your name'  />
-                    {errors.name && <span className='text-red-600'>This field is required</span>}
+            <Navbar />
+            <div className='min-h-screen pt-24 pb-12 px-4 sm:px-8'>
+                <div className='max-w-2xl mx-auto'>
+                    <h1 className='text-3xl sm:text-4xl font-bold mb-2 text-center'>Contact Us</h1>
+                    <p className='text-center text-gray-500 mb-8'>Got a question or feedback? We'd love to hear from you.</p>
+
+                    <div className='bg-base-100 shadow-lg rounded-2xl p-6 sm:p-10'>
+                        <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-5'>
+                            <div>
+                                <label className='text-sm font-semibold text-gray-500'>Full Name</label>
+                                <input type="text" {...register("name", { required: true })}
+                                    className='w-full border border-base-300 rounded-lg px-4 py-2 mt-1 outline-none focus:border-green-500 bg-base-100'
+                                    placeholder='Enter your name' />
+                                {errors.name && <span className='text-red-500 text-sm'>This field is required</span>}
+                            </div>
+
+                            <div>
+                                <label className='text-sm font-semibold text-gray-500'>Email</label>
+                                <input type="email" {...register("email", { required: true })}
+                                    className='w-full border border-base-300 rounded-lg px-4 py-2 mt-1 outline-none focus:border-green-500 bg-base-100'
+                                    placeholder='Enter your email' />
+                                {errors.email && <span className='text-red-500 text-sm'>This field is required</span>}
+                            </div>
+
+                            <div>
+                                <label className='text-sm font-semibold text-gray-500'>Message</label>
+                                <textarea {...register("message", { required: true })} rows={5}
+                                    className='w-full border border-base-300 rounded-lg px-4 py-2 mt-1 outline-none focus:border-green-500 resize-none bg-base-100'
+                                    placeholder='Write your message here...' />
+                                {errors.message && <span className='text-red-500 text-sm'>This field is required</span>}
+                            </div>
+
+                            <button type='submit'
+                                className='bg-green-700 text-white py-3 rounded-full font-bold text-lg hover:bg-green-800 cursor-pointer transition-colors'>
+                                Send Message
+                            </button>
+                        </form>
                     </div>
 
-                    {/* email */}
-                    <div className='mt-2'>
-
-                        <h1>Email</h1>
-                        <input type="text" {...register("email", { required: true })} className='border py-1 pl-1 w-full outline-none' placeholder='Enter email'  />
-                  {errors.email && <span className='text-red-600'>This field is required</span>}
+                    {/* Contact Info */}
+                    <div className='mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center'>
+                        <div className='bg-base-100 rounded-xl p-5 shadow-sm'>
+                            <p className='font-bold mb-1'>Email</p>
+                            <p className='text-gray-500 text-sm'>urbanpickle@gmail.com</p>
+                        </div>
+                        <div className='bg-base-100 rounded-xl p-5 shadow-sm'>
+                            <p className='font-bold mb-1'>Phone</p>
+                            <p className='text-gray-500 text-sm'>+92 323-5073652</p>
+                        </div>
+                        <div className='bg-base-100 rounded-xl p-5 shadow-sm'>
+                            <p className='font-bold mb-1'>Location</p>
+                            <p className='text-gray-500 text-sm'>26000, Multan, Pakistan</p>
+                        </div>
                     </div>
-                    {/* message  */}
-                    <div className='mt-2'>
-                        <h1>Message</h1>
-                        <input type="text" {...register("message", { required: true })} className='border outline-none pb-30 py-1 pl-1 w-full' placeholder='Type your Message'  />
-                    {errors.message && <span className='text-red-600'>This field is required</span>}
-                 
-                     </div>
-                    <button type='submit' className='border border-none bg-blue-500 text-white cursor-pointer hover:bg-blue-900 px-3 py-2 font-bold  my-5 rounded rounded-lg'>Submit</button>
-
-                </form>
-
+                </div>
             </div>
+            <Footer />
         </>
-
     )
 }
 

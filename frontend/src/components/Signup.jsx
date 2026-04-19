@@ -1,7 +1,9 @@
 import React from 'react'
 import Login from './Login'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from "react-hook-form"
+import axios from "axios"
+import toast from 'react-hot-toast'
 
 const Signup = () => {
 
@@ -10,8 +12,38 @@ const Signup = () => {
         handleSubmit,
         formState: { errors },
     } = useForm()
+    const navigate = useNavigate()
 
-    const onSubmit = (data) => console.log(data)
+    const onSubmit = async (data) => {
+        const userInfo = { name: data.name, email: data.email, password: data.password }
+        await axios.post("http://localhost:8000/user/signup", userInfo)
+            .then((res) => {
+                // console.log(res.data.newUser)
+                if (res.data) {
+                    const userData = { ...res.data.user, token: res.data.token }
+                    localStorage.setItem("user", JSON.stringify(userData))
+                 toast.success("Signup Successfull!")
+                 setTimeout(()=>{
+                        navigate("/")
+                        window.location.reload()
+                    },2000)
+                } 
+                // else {
+                   
+                // }
+                // console.log("after if")
+            })
+            .catch((error) => {
+                if (error.response) {
+
+                    toast.error("Error! " + error.response.data.message)// accessing the response from backend as user already exists!
+                } else {
+                    toast.error("Error signing up!!" + error)
+                }
+            })
+
+
+    }
 
 
     return (
