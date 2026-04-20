@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthProvider'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import toast from 'react-hot-toast'
-import { FaTrash, FaEdit, FaSignOutAlt, FaCloudUploadAlt, FaTimes } from 'react-icons/fa'
+import { FaTrash, FaEdit, FaSignOutAlt, FaCloudUploadAlt, FaTimes, FaFileExcel } from 'react-icons/fa'
+import * as XLSX from 'xlsx'
 
 const emptyForm = { title: '', discription: '', price: '', weight: '', category: 'achar' }
 
@@ -15,6 +16,7 @@ const HomeAdmin = () => {
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
   const [unseenCount, setUnseenCount] = useState(0)
+  const [selectedOrders, setSelectedOrders] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [editId, setEditId] = useState(null)
   const [tab, setTab] = useState('products')
@@ -177,6 +179,52 @@ const HomeAdmin = () => {
     const date = d.toLocaleDateString('en-PK', { dateStyle: 'medium' })
     const time = d.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', hour12: true })
     return `${date} at ${time}`
+  }
+
+  const toggleSelectOrder = (id) => {
+    setSelectedOrders(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
+  const toggleSelectAll = () => {
+    setSelectedOrders(prev => prev.length === orders.length ? [] : orders.map(o => o._id))
+  }
+
+  const exportToExcel = () => {
+    const targets = orders.filter(o => selectedOrders.includes(o._id))
+    if (targets.length === 0) { toast.error("Select at least one order to export"); return }
+
+    const rows = []
+    targets.forEach(order => {
+      order.items.forEach((item, idx) => {
+        rows.push({
+          'Order ID': order._id,
+          'Customer Name': order.userId?.name || '',
+          'Customer Email': order.userId?.email || '',
+          'Phone': order.address.phone,
+          'City': order.address.city,
+          'Street': order.address.street,
+          'Full Address Name': order.address.fullName,
+          'Order Date': formatDateTime(order.createdAt),
+          'Status': order.status,
+          'Product Title': item.title,
+          'Qty': item.quantity,
+          'Unit Price (Rs.)': item.price,
+          'Line Total (Rs.)': item.price * item.quantity,
+          ...(idx === 0 ? { 'Order Total (Rs.)': order.totalAmount } : { 'Order Total (Rs.)': '' }),
+        })
+      })
+    })
+
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Orders')
+
+    // Auto column widths
+    const cols = Object.keys(rows[0] || {}).map(key => ({ wch: Math.max(key.length, 14) }))
+    ws['!cols'] = cols
+
+    XLSX.writeFile(wb, `urban-pickle-orders-${new Date().toISOString().slice(0, 10)}.xlsx`)
+    toast.success(`Exported ${targets.length} order(s)`)
   }
 
   const statusColors = {
@@ -361,16 +409,47 @@ const HomeAdmin = () => {
         {/* ORDERS TAB */}
         {tab === 'orders' && (
           <>
-            <h2 className='text-xl font-bold mb-4'>All Customer Orders</h2>
+            <div className='flex flex-wrap items-center justify-between gap-3 mb-5'>
+              <div className='flex items-center gap-3'>
+                <h2 className='text-xl font-bold'>All Customer Orders</h2>
+                {selectedOrders.length > 0 && (
+                  <span className='text-sm text-gray-500'>({selectedOrders.length} selected)</span>
+                )}
+              </div>
+              <div className='flex items-center gap-3 flex-wrap'>
+                {orders.length > 0 && (
+                  <label className='flex items-center gap-2 text-sm font-semibold text-gray-600 cursor-pointer select-none'>
+                    <input type='checkbox'
+                      checked={selectedOrders.length === orders.length && orders.length > 0}
+                      onChange={toggleSelectAll}
+                      className='w-4 h-4 accent-green-700' />
+                    Select All
+                  </label>
+                )}
+                <button onClick={exportToExcel}
+                  className='flex items-center gap-2 bg-green-700 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-green-800 cursor-pointer transition-colors'>
+                  <FaFileExcel /> Export to Excel
+                </button>
+              </div>
+            </div>
+
             {orders.length === 0 && <p className='text-gray-500'>No orders yet.</p>}
             <div className='space-y-4'>
               {orders.map(order => (
-                <div key={order._id} className='bg-white shadow-md rounded-xl p-5'>
+                <div key={order._id}
+                  className={`bg-white shadow-md rounded-xl p-5 border-2 transition-colors ${selectedOrders.includes(order._id) ? 'border-green-500' : 'border-transparent'}`}>
                   <div className='flex flex-wrap justify-between items-start gap-3 mb-3'>
-                    <div>
-                      <p className='font-semibold text-gray-800'>{order.userId?.name} — {order.userId?.email}</p>
-                      <p className='text-sm text-gray-500'>{formatDateTime(order.createdAt)}</p>
-                      <p className='text-sm text-gray-600'>{order.address.fullName}, {order.address.street}, {order.address.city} | {order.address.phone}</p>
+                    <div className='flex items-start gap-3'>
+                      {/* Checkbox */}
+                      <input type='checkbox'
+                        checked={selectedOrders.includes(order._id)}
+                        onChange={() => toggleSelectOrder(order._id)}
+                        className='mt-1 w-4 h-4 accent-green-700 shrink-0 cursor-pointer' />
+                      <div>
+                        <p className='font-semibold text-gray-800'>{order.userId?.name} — {order.userId?.email}</p>
+                        <p className='text-sm text-gray-500'>{formatDateTime(order.createdAt)}</p>
+                        <p className='text-sm text-gray-600'>{order.address.fullName}, {order.address.street}, {order.address.city} | {order.address.phone}</p>
+                      </div>
                     </div>
                     <div className='flex items-center gap-3 flex-wrap'>
                       <span className={`text-sm px-3 py-1 rounded-full font-semibold capitalize ${statusColors[order.status]}`}>
@@ -390,7 +469,7 @@ const HomeAdmin = () => {
                       </button>
                     </div>
                   </div>
-                  <div className='flex flex-wrap gap-3'>
+                  <div className='flex flex-wrap gap-3 ml-7'>
                     {order.items.map((item, i) => (
                       <div key={i} className='flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2'>
                         <img src={item.image} alt={item.title} className='w-10 h-10 object-cover rounded' />

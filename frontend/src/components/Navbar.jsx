@@ -69,8 +69,9 @@ const Navbar = () => {
     <div className={`z-50 navbar fixed top-0 left-0 right-0 px-2 shadow-sm transition-all duration-300
       ${sticky ? 'bg-base-200 shadow-md' : 'bg-base-100'}`}>
 
-      {/* LEFT */}
-      <div className="navbar-start">
+      {/* LEFT + CENTER (desktop nav sits right of logo inside navbar-start) */}
+      <div className="navbar-start flex items-center gap-1">
+        {/* Mobile hamburger */}
         <div className="dropdown lg:hidden">
           <label tabIndex={0} className="btn btn-ghost btn-circle">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -113,14 +114,14 @@ const Navbar = () => {
             </li>
           </ul>
         </div>
-        <Link to="/" className="text-green-700 font-bold text-xl ml-1">
+
+        {/* Logo */}
+        <Link to="/" className="text-green-700 font-bold text-xl ml-1 shrink-0">
           Urban <span className="text-orange-500">Pickle</span>
         </Link>
-      </div>
 
-      {/* CENTER — shifted left with mr-auto */}
-      <div className="hidden lg:flex mr-auto ml-4">
-        <ul className="menu menu-horizontal px-0 gap-0 items-center text-sm">
+        {/* Desktop nav links — right of logo, shifted left naturally */}
+        <ul className="hidden lg:flex menu menu-horizontal px-0 gap-0 items-center text-sm ml-2">
           <li><Link to="/">Home</Link></li>
           <li><Link to="/products">Products</Link></li>
           <li>
@@ -143,9 +144,7 @@ const Navbar = () => {
             <li>
               <Link to="/orders" className="relative flex items-center gap-1">
                 My Orders
-                {hasNewOrder && (
-                  <span className="w-2 h-2 rounded-full bg-orange-500 inline-block ml-1"></span>
-                )}
+                {hasNewOrder && <span className="w-2 h-2 rounded-full bg-orange-500 inline-block ml-1"></span>}
               </Link>
             </li>
           )}
