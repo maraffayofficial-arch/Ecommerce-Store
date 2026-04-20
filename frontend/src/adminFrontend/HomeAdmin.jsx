@@ -14,6 +14,7 @@ const HomeAdmin = () => {
 
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
+  const [unseenCount, setUnseenCount] = useState(0)
   const [form, setForm] = useState(emptyForm)
   const [editId, setEditId] = useState(null)
   const [tab, setTab] = useState('products')
@@ -46,8 +47,19 @@ const HomeAdmin = () => {
   const fetchOrders = async () => {
     try {
       const res = await axios.get("http://localhost:8000/order/all", authHeader)
-      setOrders(res.data)
+      const fetched = res.data
+      setOrders(fetched)
+      const seen = JSON.parse(localStorage.getItem("seenAdminOrderIds") || "[]")
+      const unseen = fetched.filter(o => !seen.includes(o._id))
+      setUnseenCount(unseen.length)
     } catch { }
+  }
+
+  const handleOrdersTab = () => {
+    setTab('orders')
+    const allIds = orders.map(o => o._id)
+    localStorage.setItem("seenAdminOrderIds", JSON.stringify(allIds))
+    setUnseenCount(0)
   }
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
@@ -191,9 +203,14 @@ const HomeAdmin = () => {
           className={`py-3 px-6 font-semibold border-b-2 transition-all ${tab === 'products' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500'}`}>
           Products
         </button>
-        <button onClick={() => setTab('orders')}
-          className={`py-3 px-6 font-semibold border-b-2 transition-all ${tab === 'orders' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500'}`}>
-          Orders ({orders.length})
+        <button onClick={handleOrdersTab}
+          className={`py-3 px-6 font-semibold border-b-2 transition-all flex items-center gap-2 ${tab === 'orders' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500'}`}>
+          Orders
+          {unseenCount > 0 && (
+            <span className="bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              {unseenCount}
+            </span>
+          )}
         </button>
       </div>
 

@@ -66,7 +66,7 @@ const Navbar = () => {
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light')
 
   return (
-    <div className={`z-50 navbar fixed top-0 left-0 right-0 px-4 shadow-sm transition-all duration-300
+    <div className={`z-50 navbar fixed top-0 left-0 right-0 px-2 shadow-sm transition-all duration-300
       ${sticky ? 'bg-base-200 shadow-md' : 'bg-base-100'}`}>
 
       {/* LEFT */}
@@ -118,9 +118,9 @@ const Navbar = () => {
         </Link>
       </div>
 
-      {/* CENTER */}
-      <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1 gap-1 items-center">
+      {/* CENTER — shifted left with mr-auto */}
+      <div className="hidden lg:flex mr-auto ml-4">
+        <ul className="menu menu-horizontal px-0 gap-0 items-center text-sm">
           <li><Link to="/">Home</Link></li>
           <li><Link to="/products">Products</Link></li>
           <li>
@@ -156,12 +156,12 @@ const Navbar = () => {
       </div>
 
       {/* RIGHT */}
-      <div className="navbar-end flex gap-2 items-center">
+      <div className="navbar-end flex gap-3 items-center pl-2">
         {/* Desktop Search */}
-        <div className="hidden lg:flex items-center border border-gray-300 rounded-full px-3 py-1 bg-base-100 gap-2">
+        <div className="hidden lg:flex items-center border border-gray-300 rounded-full px-3 py-1.5 bg-base-100 gap-2">
           <input type="text" placeholder="Search..."
             value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={handleSearch}
-            className="bg-transparent outline-none text-sm w-32 focus:w-44 transition-all duration-300" />
+            className="bg-transparent outline-none text-sm w-28 focus:w-40 transition-all duration-300" />
           <button onClick={() => { if (searchQuery.trim()) { navigate(`/products?q=${encodeURIComponent(searchQuery.trim())}`); setSearchQuery('') } }}>
             <FaSearch className="text-gray-400 hover:text-green-700 cursor-pointer" />
           </button>
