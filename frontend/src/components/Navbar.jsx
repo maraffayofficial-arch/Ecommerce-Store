@@ -3,7 +3,7 @@ import Login from './Login'
 import { useAuth } from '../context/AuthProvider'
 import { useCart } from '../context/CartProvider'
 import Logout from './Logout'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { FaShoppingCart, FaSearch } from 'react-icons/fa'
 
 const categories = [
@@ -116,14 +116,27 @@ const Navbar = () => {
         </div>
 
         {/* Logo */}
-        <Link to="/" className="text-green-700 font-bold text-xl ml-2 shrink-0">
+        <Link to="/" className="text-green-700 font-bold text-xl ml-10 shrink-0">
           Urban <span className="text-orange-500">Pickle</span>
         </Link>
 
         {/* Desktop nav links */}
-        <ul className="hidden lg:flex menu menu-horizontal px-0 gap-0 items-center text-sm ml-16">
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/products">Products</Link></li>
+        <ul className="hidden lg:flex menu menu-horizontal px-0 gap-0 items-center text-sm ml-24">
+          {[
+            { to: '/', label: 'Home', end: true },
+            { to: '/products', label: 'Products' },
+            { to: '/about', label: 'About Us' },
+            { to: '/contact', label: 'Contact' },
+          ].map(({ to, label, end }) => (
+            <li key={to}>
+              <NavLink to={to} end={end}
+                className={({ isActive }) =>
+                  isActive ? 'text-orange-500 font-semibold border-b-2 border-orange-500 rounded-none' : ''
+                }>
+                {label}
+              </NavLink>
+            </li>
+          ))}
           <li>
             <details>
               <summary className="font-medium">Categories</summary>
@@ -138,18 +151,26 @@ const Navbar = () => {
               </ul>
             </details>
           </li>
-          <li><Link to="/about">About Us</Link></li>
-          <li><Link to="/contact">Contact</Link></li>
           {authUser && (
             <li>
-              <Link to="/orders" className="relative flex items-center gap-1">
+              <NavLink to="/orders"
+                className={({ isActive }) =>
+                  `relative flex items-center gap-1 ${isActive ? 'text-orange-500 font-semibold border-b-2 border-orange-500 rounded-none' : ''}`
+                }>
                 My Orders
                 {hasNewOrder && <span className="w-2 h-2 rounded-full bg-orange-500 inline-block ml-1"></span>}
-              </Link>
+              </NavLink>
             </li>
           )}
           {authUser?.role === 'admin' && (
-            <li><Link to="/admin" className="text-orange-600 font-semibold">Admin</Link></li>
+            <li>
+              <NavLink to="/admin"
+                className={({ isActive }) =>
+                  isActive ? 'text-orange-500 font-semibold border-b-2 border-orange-500 rounded-none' : 'text-orange-600 font-semibold'
+                }>
+                Admin
+              </NavLink>
+            </li>
           )}
         </ul>
       </div>
