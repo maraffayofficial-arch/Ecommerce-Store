@@ -5,6 +5,7 @@ import { MdVerified } from 'react-icons/md'
 import { FaTruck, FaHeart, FaLeaf } from 'react-icons/fa'
 import { GiBowlOfRice } from 'react-icons/gi'
 import { Link } from 'react-router-dom'
+import aboutLogo from '../assets/Urban_pickle_no_BG.png'
 
 const values = [
   { icon: <FaLeaf className='text-green-600 text-4xl' />, title: 'Natural Ingredients', desc: 'No preservatives, no artificial colours. Just real spices, fresh vegetables, and pure mustard oil.' },
@@ -21,6 +22,7 @@ const About = () => {
       {/* Hero Section */}
       <section className='pt-28 pb-16 px-6 sm:px-12 bg-gradient-to-br from-green-50 to-orange-50'>
         <div className='max-w-4xl mx-auto text-center'>
+          <img src={aboutLogo} alt="Urban Pickle" className='h-28 sm:h-36 w-auto object-contain mx-auto mb-6' />
           <h1 className='text-4xl sm:text-6xl font-extrabold mb-6'>
             The Story of <span className='text-green-700'>Urban</span>{' '}
             <span className='text-orange-500'>Pickle</span>
