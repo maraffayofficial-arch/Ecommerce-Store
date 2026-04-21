@@ -193,35 +193,34 @@ const HomeAdmin = () => {
     const targets = orders.filter(o => selectedOrders.includes(o._id))
     if (targets.length === 0) { toast.error("Select at least one order to export"); return }
 
-    const rows = []
-    targets.forEach(order => {
-      order.items.forEach((item, idx) => {
-        rows.push({
-          'Order ID': order._id,
-          'Customer Name': order.userId?.name || '',
-          'Customer Email': order.userId?.email || '',
-          'Phone': order.address.phone,
-          'City': order.address.city,
-          'Street': order.address.street,
-          'Full Address Name': order.address.fullName,
-          'Order Date': formatDateTime(order.createdAt),
-          'Status': order.status,
-          'Product Title': item.title,
-          'Qty': item.quantity,
-          'Unit Price (Rs.)': item.price,
-          'Line Total (Rs.)': item.price * item.quantity,
-          ...(idx === 0 ? { 'Order Total (Rs.)': order.totalAmount } : { 'Order Total (Rs.)': '' }),
-        })
-      })
+    const rows = targets.map(order => {
+      const d = new Date(order.createdAt)
+      const date = d.toLocaleDateString('en-PK', { dateStyle: 'medium' })
+      const time = d.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', hour12: true })
+      const products = order.items.map(i => i.title).join(' + ')
+      const qty = order.items.map(i => i.quantity).join(' + ')
+      return {
+        'Order ID': order._id,
+        'Customer Name': order.userId?.name || '',
+        'Customer Email': order.userId?.email || '',
+        'Phone': order.address.phone,
+        'City': order.address.city,
+        'Recipient Name': order.address.fullName,
+        'Date': date,
+        'Time': time,
+        'Status': order.status,
+        'Products': products,
+        'Qty': qty,
+        'Total (Rs.)': order.totalAmount,
+      }
     })
 
     const ws = XLSX.utils.json_to_sheet(rows)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Orders')
 
-    // Auto column widths
-    const cols = Object.keys(rows[0] || {}).map(key => ({ wch: Math.max(key.length, 14) }))
-    ws['!cols'] = cols
+    const colWidths = { 'Order ID': 28, 'Customer Name': 18, 'Customer Email': 26, 'Phone': 14, 'City': 14, 'Recipient Name': 18, 'Date': 14, 'Time': 10, 'Status': 12, 'Products': 40, 'Qty': 14, 'Total (Rs.)': 14 }
+    ws['!cols'] = Object.keys(colWidths).map(k => ({ wch: colWidths[k] }))
 
     XLSX.writeFile(wb, `urban-pickle-orders-${new Date().toISOString().slice(0, 10)}.xlsx`)
     toast.success(`Exported ${targets.length} order(s)`)
