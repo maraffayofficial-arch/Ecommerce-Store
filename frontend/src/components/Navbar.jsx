@@ -155,7 +155,7 @@ const Navbar = () => {
       </div>
 
       {/* RIGHT */}
-      <div className="navbar-end flex gap-3 items-center pl-2">
+      <div className="navbar-end flex gap-3 items-center pl-2 pr-6">
         {/* Desktop Search */}
         <div className="hidden lg:flex items-center border border-gray-300 rounded-full px-3 py-1.5 bg-base-100 gap-2">
           <input type="text" placeholder="Search..."
