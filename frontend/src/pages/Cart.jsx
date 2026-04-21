@@ -2,15 +2,20 @@ import React from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useCart } from '../context/CartProvider'
+import { useAuth } from '../context/AuthProvider'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaTrash } from 'react-icons/fa'
 
+const SHIPPING_FEE = 200
+
 const Cart = () => {
   const { cart, updateItem, removeItem, loading } = useCart()
+  const [authUser] = useAuth()
   const navigate = useNavigate()
 
   const items = cart?.items || []
-  const total = items.reduce((sum, i) => sum + i.productId.price * i.quantity, 0)
+  const subtotal = items.reduce((sum, i) => sum + i.productId.price * i.quantity, 0)
+  const total = subtotal + SHIPPING_FEE
 
   if (items.length === 0) {
     return (
@@ -34,14 +39,27 @@ const Cart = () => {
     <>
       <Navbar />
       <div className='min-h-screen pt-24 pb-12 px-4 sm:px-8 max-w-4xl mx-auto'>
-        <h1 className='text-2xl sm:text-3xl font-bold mb-8 text-center'>Your Cart</h1>
+        <h1 className='text-2xl sm:text-3xl font-bold mb-6 text-center'>Your Cart</h1>
+
+        {/* Guest register nudge */}
+        {!authUser && (
+          <div className='mb-5 bg-orange-50 border border-orange-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2'>
+            <p className='text-sm text-orange-800'>
+              <span className='font-semibold'>Have an account?</span> Sign in to save your cart and track orders.
+            </p>
+            <button onClick={() => document.getElementById("my_modal_3").showModal()}
+              className='text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 px-4 py-1.5 rounded-full shrink-0'>
+              Sign In / Register
+            </button>
+          </div>
+        )}
 
         <div className='space-y-4'>
           {items.map((item) => {
             const product = item.productId
             return (
               <div key={product._id} className='flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-base-100 shadow-md rounded-xl p-4'>
-                <img src={product.image} alt={product.title} className='w-full sm:w-24 h-40 sm:h-24 object-cover rounded-lg' />
+                <img src={product.images?.[0]} alt={product.title} className='w-full sm:w-24 h-40 sm:h-24 object-cover rounded-lg' />
                 <div className='flex-1'>
                   <h2 className='font-bold text-lg'>{product.title}</h2>
                   <p className='text-green-700 font-semibold'>Rs. {product.price}</p>
@@ -64,7 +82,15 @@ const Cart = () => {
         </div>
 
         <div className='mt-8 bg-base-100 shadow-md rounded-xl p-6'>
-          <div className='flex justify-between text-xl font-bold mb-4'>
+          <div className='flex justify-between text-base text-gray-600 mb-2'>
+            <span>Subtotal</span>
+            <span>Rs. {subtotal}</span>
+          </div>
+          <div className='flex justify-between text-base text-gray-600 mb-3 pb-3 border-b border-base-200'>
+            <span>Shipping</span>
+            <span>Rs. {SHIPPING_FEE}</span>
+          </div>
+          <div className='flex justify-between text-xl font-bold mb-5'>
             <span>Total</span>
             <span className='text-green-700'>Rs. {total}</span>
           </div>

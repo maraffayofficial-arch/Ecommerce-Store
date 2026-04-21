@@ -1,6 +1,8 @@
 import orderModel from "../model/order.js"
 import cartModel from "../model/cart.js"
 
+const SHIPPING_FEE = 200
+
 const placeOrder = async (req, res) => {
     try {
         const { address, paymentMethod, transactionId, newsletterOptIn } = req.body
@@ -18,7 +20,7 @@ const placeOrder = async (req, res) => {
             quantity: i.quantity
         }))
 
-        const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+        const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0) + SHIPPING_FEE
 
         const order = new orderModel({ userId: req.user._id, items, totalAmount, address, paymentMethod: paymentMethod || "cod", transactionId: transactionId || "", newsletterOptIn: !!newsletterOptIn })
         await order.save()
@@ -103,4 +105,28 @@ const cancelOrder = async (req, res) => {
     }
 }
 
-export { placeOrder, getUserOrders, getAllOrders, updateOrderStatus, cancelOrder, removeOrder, adminRemoveOrder }
+const placeGuestOrder = async (req, res) => {
+    try {
+        const { items: rawItems, address, paymentMethod, transactionId, newsletterOptIn } = req.body
+        if (!rawItems || rawItems.length === 0) {
+            return res.status(400).json({ success: false, message: "No items in order" })
+        }
+        const totalAmount = rawItems.reduce((sum, i) => sum + i.price * i.quantity, 0) + SHIPPING_FEE
+        const order = new orderModel({
+            userId: null,
+            guestOrder: true,
+            items: rawItems,
+            totalAmount,
+            address,
+            paymentMethod: paymentMethod || "cod",
+            transactionId: transactionId || "",
+            newsletterOptIn: !!newsletterOptIn,
+        })
+        await order.save()
+        res.status(201).json({ success: true, message: "Order placed successfully!", order })
+    } catch (error) {
+        res.status(500).json({ message: "Error placing guest order", error })
+    }
+}
+
+export { placeOrder, placeGuestOrder, getUserOrders, getAllOrders, updateOrderStatus, cancelOrder, removeOrder, adminRemoveOrder }

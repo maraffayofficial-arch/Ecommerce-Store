@@ -27,7 +27,7 @@ const CardElements = ({ item }) => {
           <div className="card-actions justify-between mt-2"
             onClick={e => e.stopPropagation()}>
             <button
-              onClick={() => addToCart(item._id)}
+              onClick={() => addToCart(item._id, 1, item)}
               className="btn btn-sm bg-orange-500 text-white border-none hover:bg-orange-600 rounded-full px-4"
             >
               Add to Cart

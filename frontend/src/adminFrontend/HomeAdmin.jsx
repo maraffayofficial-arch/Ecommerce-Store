@@ -200,8 +200,8 @@ const HomeAdmin = () => {
       const products = order.items.map(i => i.title).join(' + ')
       return {
         'Order ID': order._id,
-        'Customer Name': order.userId?.name || '',
-        'Customer Email': order.userId?.email || '',
+        'Customer Name': order.guestOrder ? 'Guest' : (order.userId?.name || ''),
+        'Customer Email': order.guestOrder ? '' : (order.userId?.email || ''),
         'Phone': order.address.phone,
         'City': order.address.city,
         'Recipient Name': order.address.fullName,
@@ -446,7 +446,9 @@ const HomeAdmin = () => {
                         onChange={() => toggleSelectOrder(order._id)}
                         className='mt-1 w-4 h-4 accent-green-700 shrink-0 cursor-pointer' />
                       <div>
-                        <p className='font-semibold text-gray-800'>{order.userId?.name} — {order.userId?.email}</p>
+                        <p className='font-semibold text-gray-800'>
+                          {order.guestOrder ? <span className='text-gray-400 italic'>Guest Order</span> : `${order.userId?.name} — ${order.userId?.email}`}
+                        </p>
                         <p className='text-sm text-gray-500'>{formatDateTime(order.createdAt)}</p>
                         <p className='text-sm text-gray-600'>{order.address.fullName}, {order.address.street}, {order.address.city} | {order.address.phone}</p>
                         <div className='flex items-center gap-2 mt-1 flex-wrap'>

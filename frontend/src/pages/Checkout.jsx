@@ -8,6 +8,8 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { FaMoneyBillWave, FaUniversity, FaMobileAlt } from 'react-icons/fa'
 
+const SHIPPING_FEE = 200
+
 // ── Update these with your real bank details ──────────────────────────────────
 const BANK_DETAILS = {
   bankName: 'Meezan Bank',
@@ -53,7 +55,7 @@ const paymentMethods = [
 ]
 
 const Checkout = () => {
-  const { cart, fetchCart } = useCart()
+  const { cart, fetchCart, clearCart } = useCart()
   const [authUser] = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
@@ -65,7 +67,8 @@ const Checkout = () => {
   const [newsletterOptIn, setNewsletterOptIn] = useState(false)
 
   const items = cart?.items || []
-  const total = items.reduce((sum, i) => sum + i.productId.price * i.quantity, 0)
+  const subtotal = items.reduce((sum, i) => sum + i.productId.price * i.quantity, 0)
+  const total = subtotal + SHIPPING_FEE
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -77,18 +80,39 @@ const Checkout = () => {
     }
     setLoading(true)
     try {
-      await axios.post("http://localhost:8000/order/place", {
-        address: form,
-        paymentMethod,
-        transactionId: paymentMethod === 'bank_transfer' ? transactionId.trim() : '',
-        newsletterOptIn,
-      }, { headers: { Authorization: `Bearer ${authUser?.token}` } })
-
-      toast.success("Order placed successfully!")
-      localStorage.setItem("hasNewOrder", "true")
-      window.dispatchEvent(new Event("orderNotifUpdate"))
-      await fetchCart()
-      setTimeout(() => navigate('/orders'), 1500)
+      if (authUser) {
+        // Logged-in order — cart is DB-backed
+        await axios.post("http://localhost:8000/order/place", {
+          address: form,
+          paymentMethod,
+          transactionId: paymentMethod === 'bank_transfer' ? transactionId.trim() : '',
+          newsletterOptIn,
+        }, { headers: { Authorization: `Bearer ${authUser.token}` } })
+        localStorage.setItem("hasNewOrder", "true")
+        window.dispatchEvent(new Event("orderNotifUpdate"))
+        await fetchCart()
+        toast.success("Order placed successfully!")
+        setTimeout(() => navigate('/orders'), 1500)
+      } else {
+        // Guest order — send items directly
+        const guestItems = items.map(i => ({
+          productId: i.productId._id,
+          title: i.productId.title,
+          price: i.productId.price,
+          image: i.productId.images?.[0] || '',
+          quantity: i.quantity,
+        }))
+        await axios.post("http://localhost:8000/order/place-guest", {
+          items: guestItems,
+          address: form,
+          paymentMethod,
+          transactionId: paymentMethod === 'bank_transfer' ? transactionId.trim() : '',
+          newsletterOptIn,
+        })
+        await clearCart()
+        toast.success("Order placed! Create an account to track it.")
+        setTimeout(() => navigate('/'), 1500)
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to place order")
     } finally { setLoading(false) }
@@ -102,6 +126,19 @@ const Checkout = () => {
       <Navbar />
       <div className='min-h-screen pt-24 pb-12 px-4 sm:px-8 max-w-5xl mx-auto'>
         <h1 className='text-2xl sm:text-3xl font-bold mb-8 text-center'>Checkout</h1>
+
+        {/* Guest register nudge */}
+        {!authUser && (
+          <div className='mb-6 bg-orange-50 border border-orange-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2'>
+            <p className='text-sm text-orange-800'>
+              <span className='font-semibold'>Already have an account?</span> Sign in to track your orders and get faster checkout.
+            </p>
+            <button onClick={() => document.getElementById("my_modal_3").showModal()}
+              className='text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 px-4 py-1.5 rounded-full shrink-0'>
+              Sign In / Register
+            </button>
+          </div>
+        )}
 
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
 
@@ -122,9 +159,17 @@ const Checkout = () => {
                 <p className='font-bold text-sm'>Rs. {i.productId.price * i.quantity}</p>
               </div>
             ))}
-            <div className='flex justify-between mt-4 text-xl font-bold border-t border-base-200 pt-3'>
-              <span>Total</span>
-              <span className='text-green-700'>Rs. {total}</span>
+            <div className='mt-4 border-t border-base-200 pt-3 space-y-1'>
+              <div className='flex justify-between text-sm text-gray-500'>
+                <span>Subtotal</span><span>Rs. {subtotal}</span>
+              </div>
+              <div className='flex justify-between text-sm text-gray-500'>
+                <span>Shipping</span><span>Rs. {SHIPPING_FEE}</span>
+              </div>
+              <div className='flex justify-between text-xl font-bold pt-2 border-t border-base-200'>
+                <span>Total</span>
+                <span className='text-green-700'>Rs. {total}</span>
+              </div>
             </div>
           </div>
 

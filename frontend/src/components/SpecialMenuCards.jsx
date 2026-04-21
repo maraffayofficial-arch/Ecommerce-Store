@@ -24,7 +24,7 @@ const SpecialMenuCards = ({ item }) => {
                 <p className='text-green-700 font-bold text-xl mt-1'>Rs. {item.price}</p>
                 <div className='flex gap-3 justify-center mt-3'>
                     <button
-                        onClick={() => addToCart(item._id)}
+                        onClick={() => addToCart(item._id, 1, item)}
                         className='bg-orange-500 text-white px-5 py-2 rounded-full font-semibold hover:bg-orange-600 cursor-pointer text-sm'
                     >
                         Add to Cart

@@ -1,7 +1,8 @@
 import mongoose from "mongoose"
 
 const orderSchema = mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "user_Collection", required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "user_Collection", default: null },
+    guestOrder: { type: Boolean, default: false },
     items: [
         {
             productId: { type: mongoose.Schema.Types.ObjectId, ref: "product_collection" },

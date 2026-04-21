@@ -31,8 +31,8 @@ function App() {
           <Route path='/signup' element={<Signup />} />
           <Route path='/contact' element={<Contact />} />
           <Route path='/about' element={<About />} />
-          <Route path='/cart' element={<ProtectedRoute><Cart /></ProtectedRoute>} />
-          <Route path='/checkout' element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+          <Route path='/cart' element={<Cart />} />
+          <Route path='/checkout' element={<Checkout />} />
           <Route path='/orders' element={<ProtectedRoute><Orders /></ProtectedRoute>} />
           <Route path='/admin' element={<ProtectedRoute adminOnly><HomeAdmin /></ProtectedRoute>} />
         </Routes>

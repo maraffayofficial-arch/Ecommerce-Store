@@ -110,7 +110,7 @@ const ProductDetail = () => {
             </div>
 
             <div className='flex flex-wrap gap-4 mt-2'>
-              <button onClick={() => addToCart(product._id, qty)}
+              <button onClick={() => addToCart(product._id, qty, product)}
                 className='bg-orange-500 text-white px-8 py-3 rounded-full font-bold text-base hover:bg-orange-600 cursor-pointer transition-colors'>
                 Add to Cart
               </button>
