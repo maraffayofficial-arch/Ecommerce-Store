@@ -16,8 +16,13 @@ const orderSchema = mongoose.Schema({
         fullName: { type: String, required: true },
         phone: { type: String, required: true },
         city: { type: String, required: true },
-        street: { type: String, required: true }
+        street: { type: String, required: true },
+        postalCode: { type: String, default: "" },
+        email: { type: String, default: "" }
     },
+    paymentMethod: { type: String, enum: ["cod", "bank_transfer"], default: "cod" },
+    transactionId: { type: String, default: "" },
+    newsletterOptIn: { type: Boolean, default: false },
     status: { type: String, enum: ["pending", "processing", "shipped", "delivered", "cancelled"], default: "pending" }
 }, { timestamps: true })
 

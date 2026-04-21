@@ -3,7 +3,7 @@ import cartModel from "../model/cart.js"
 
 const placeOrder = async (req, res) => {
     try {
-        const { address } = req.body
+        const { address, paymentMethod, transactionId, newsletterOptIn } = req.body
         const cart = await cartModel.findOne({ userId: req.user._id }).populate("items.productId")
 
         if (!cart || cart.items.length === 0) {
@@ -20,7 +20,7 @@ const placeOrder = async (req, res) => {
 
         const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
-        const order = new orderModel({ userId: req.user._id, items, totalAmount, address })
+        const order = new orderModel({ userId: req.user._id, items, totalAmount, address, paymentMethod: paymentMethod || "cod", transactionId: transactionId || "", newsletterOptIn: !!newsletterOptIn })
         await order.save()
 
         // clear cart after order

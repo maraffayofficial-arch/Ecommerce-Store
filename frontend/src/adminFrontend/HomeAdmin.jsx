@@ -208,6 +208,8 @@ const HomeAdmin = () => {
         'Date': date,
         'Time': time,
         'Status': order.status,
+        'Payment Method': order.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'Cash on Delivery',
+        'Transaction ID': order.transactionId || '',
         'Products': products,
         'Qty': 1,
         'Total (Rs.)': order.totalAmount,
@@ -218,7 +220,7 @@ const HomeAdmin = () => {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Orders')
 
-    const colWidths = { 'Order ID': 28, 'Customer Name': 18, 'Customer Email': 26, 'Phone': 14, 'City': 14, 'Recipient Name': 18, 'Date': 14, 'Time': 10, 'Status': 12, 'Products': 40, 'Qty': 14, 'Total (Rs.)': 14 }
+    const colWidths = { 'Order ID': 28, 'Customer Name': 18, 'Customer Email': 26, 'Phone': 14, 'City': 14, 'Recipient Name': 18, 'Date': 14, 'Time': 10, 'Status': 12, 'Payment Method': 18, 'Transaction ID': 22, 'Products': 40, 'Qty': 8, 'Total (Rs.)': 14 }
     ws['!cols'] = Object.keys(colWidths).map(k => ({ wch: colWidths[k] }))
 
     XLSX.writeFile(wb, `urban-pickle-orders-${new Date().toISOString().slice(0, 10)}.xlsx`)
@@ -447,6 +449,14 @@ const HomeAdmin = () => {
                         <p className='font-semibold text-gray-800'>{order.userId?.name} — {order.userId?.email}</p>
                         <p className='text-sm text-gray-500'>{formatDateTime(order.createdAt)}</p>
                         <p className='text-sm text-gray-600'>{order.address.fullName}, {order.address.street}, {order.address.city} | {order.address.phone}</p>
+                        <div className='flex items-center gap-2 mt-1 flex-wrap'>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold capitalize ${order.paymentMethod === 'bank_transfer' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                            {order.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'Cash on Delivery'}
+                          </span>
+                          {order.transactionId && (
+                            <span className='text-xs text-gray-500'>TXN: <span className='font-mono font-semibold text-gray-700'>{order.transactionId}</span></span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className='flex items-center gap-3 flex-wrap'>
