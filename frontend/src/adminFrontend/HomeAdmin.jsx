@@ -198,7 +198,6 @@ const HomeAdmin = () => {
       const date = d.toLocaleDateString('en-PK', { dateStyle: 'medium' })
       const time = d.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', hour12: true })
       const products = order.items.map(i => i.title).join(' + ')
-      const qty = order.items.map(i => i.quantity).join(' + ')
       return {
         'Order ID': order._id,
         'Customer Name': order.userId?.name || '',
@@ -210,7 +209,7 @@ const HomeAdmin = () => {
         'Time': time,
         'Status': order.status,
         'Products': products,
-        'Qty': qty,
+        'Qty': 1,
         'Total (Rs.)': order.totalAmount,
       }
     })
