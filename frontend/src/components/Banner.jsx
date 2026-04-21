@@ -1,6 +1,5 @@
 import React from 'react'
 import bannerImage from "../assets/acahr_front_img.png"
-import logoImg from "../assets/logo_no_bg_.png"
 
 const Banner = () => {
     return (
@@ -8,7 +7,6 @@ const Banner = () => {
 
             {/* Text Side */}
             <div className='flex-1 text-center sm:text-left'>
-                <img src={logoImg} alt="Urban Pickle" className='h-24 sm:h-28 lg:h-36 w-auto object-contain mb-4 mx-auto sm:mx-0' />
                 <h1 className='text-4xl sm:text-5xl lg:text-7xl text-black font-bold mb-6 leading-tight'>
                     Authentic Pakistani Achaar{' '}
                     <span className='text-orange-500'>Delivered Fresh!</span>
