@@ -21,7 +21,7 @@ const orderSchema = mongoose.Schema({
         postalCode: { type: String, default: "" },
         email: { type: String, default: "" }
     },
-    paymentMethod: { type: String, enum: ["cod", "bank_transfer"], default: "cod" },
+    paymentMethod: { type: String, enum: ["cod", "bank_transfer", "jazzcash", "easypaisa"], default: "cod" },
     transactionId: { type: String, default: "" },
     newsletterOptIn: { type: Boolean, default: false },
     status: { type: String, enum: ["pending", "processing", "shipped", "delivered", "cancelled"], default: "pending" }

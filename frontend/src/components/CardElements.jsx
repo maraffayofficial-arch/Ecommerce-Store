@@ -1,11 +1,17 @@
 import React from 'react'
 import { FaStar } from "react-icons/fa"
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartProvider'
 
 const CardElements = ({ item }) => {
   const { addToCart } = useCart()
   const navigate = useNavigate()
+
+  const handleBuyNow = (e) => {
+    e.stopPropagation()
+    addToCart(item._id, 1, item)
+    navigate('/checkout')
+  }
 
   return (
     <div className='text-black flex justify-center items-center h-full px-3 py-3'>
@@ -24,19 +30,19 @@ const CardElements = ({ item }) => {
           <p className='text-sm text-gray-600 line-clamp-2'>{item.discription}</p>
           <p className='font-bold text-green-700 text-lg'>Rs. {item.price}</p>
 
-          <div className="card-actions justify-between mt-2"
-            onClick={e => e.stopPropagation()}>
+          <div className="card-actions justify-between mt-2" onClick={e => e.stopPropagation()}>
             <button
               onClick={() => addToCart(item._id, 1, item)}
               className="btn btn-sm bg-orange-500 text-white border-none hover:bg-orange-600 rounded-full px-4"
             >
               Add to Cart
             </button>
-            <Link to={`/product/${item._id}`}>
-              <button className="btn btn-sm bg-green-700 text-white border-none hover:bg-green-800 rounded-full px-4">
-                View Details
-              </button>
-            </Link>
+            <button
+              onClick={handleBuyNow}
+              className="btn btn-sm bg-green-700 text-white border-none hover:bg-green-800 rounded-full px-4"
+            >
+              Buy Now
+            </button>
           </div>
         </div>
       </div>

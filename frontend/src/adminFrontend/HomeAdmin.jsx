@@ -208,11 +208,11 @@ const HomeAdmin = () => {
         'Date': date,
         'Time': time,
         'Status': order.status,
-        'Payment Method': order.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'Cash on Delivery',
+        'Payment Method': order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod === 'jazzcash' ? 'JazzCash' : order.paymentMethod === 'easypaisa' ? 'EasyPaisa' : 'Bank Transfer',
         'Transaction ID': order.transactionId || '',
         'Products': products,
         'Qty': 1,
-        'Total (Rs.)': order.totalAmount,
+        'Total (Rs.)': order.paymentMethod === 'cod' ? order.totalAmount : 0,
       }
     })
 
@@ -452,8 +452,14 @@ const HomeAdmin = () => {
                         <p className='text-sm text-gray-500'>{formatDateTime(order.createdAt)}</p>
                         <p className='text-sm text-gray-600'>{order.address.fullName}, {order.address.street}, {order.address.city} | {order.address.phone}</p>
                         <div className='flex items-center gap-2 mt-1 flex-wrap'>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold capitalize ${order.paymentMethod === 'bank_transfer' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                            {order.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'Cash on Delivery'}
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold capitalize
+                            ${order.paymentMethod === 'cod' ? 'bg-yellow-100 text-yellow-700' :
+                              order.paymentMethod === 'jazzcash' ? 'bg-orange-100 text-orange-700' :
+                              order.paymentMethod === 'easypaisa' ? 'bg-emerald-100 text-emerald-700' :
+                              'bg-blue-100 text-blue-700'}`}>
+                            {order.paymentMethod === 'cod' ? 'Cash on Delivery' :
+                             order.paymentMethod === 'jazzcash' ? 'JazzCash' :
+                             order.paymentMethod === 'easypaisa' ? 'EasyPaisa' : 'Bank Transfer'}
                           </span>
                           {order.transactionId && (
                             <span className='text-xs text-gray-500'>TXN: <span className='font-mono font-semibold text-gray-700'>{order.transactionId}</span></span>
@@ -487,7 +493,15 @@ const HomeAdmin = () => {
                       </div>
                     ))}
                   </div>
-                  <p className='text-right font-bold text-green-700 mt-3'>Rs. {order.totalAmount}</p>
+                  <div className='text-right mt-3'>
+                    <p className='font-bold text-green-700'>Order Total: Rs. {order.totalAmount}</p>
+                    {order.paymentMethod !== 'cod' && (
+                      <p className='text-sm text-gray-500 mt-0.5'>
+                        Amount to Collect: <span className='font-semibold text-red-500'>Rs. 0</span>
+                        <span className='ml-1 text-xs text-green-600'>(Prepaid)</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

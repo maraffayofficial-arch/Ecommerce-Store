@@ -10,48 +10,48 @@ import { FaMoneyBillWave, FaUniversity, FaMobileAlt } from 'react-icons/fa'
 
 const SHIPPING_FEE = 200
 
-// ── Update these with your real bank details ──────────────────────────────────
-const BANK_DETAILS = {
-  bankName: 'Meezan Bank',
-  accountTitle: 'Urban Pickle',
-  accountNumber: '0123-4567890-1',
-  iban: 'PK00MEZN0001234567890123',
+// ── Update these with your real account details ───────────────────────────────
+const PAYMENT_INFO = {
+  bank_transfer: {
+    label: 'Bank Transfer',
+    fields: [
+      { key: 'Bank', value: 'Meezan Bank' },
+      { key: 'Account Title', value: 'Urban Pickle' },
+      { key: 'Account No.', value: '0123-4567890-1' },
+      { key: 'IBAN', value: 'PK00MEZN0001234567890123' },
+    ],
+    note: 'Transfer to our bank account, then paste your Transaction ID below.',
+    txnLabel: 'Transaction / Reference ID',
+    color: 'blue',
+  },
+  jazzcash: {
+    label: 'JazzCash',
+    fields: [
+      { key: 'JazzCash Number', value: '0300-1234567' },
+      { key: 'Account Name', value: 'Urban Pickle' },
+    ],
+    note: 'Send money via JazzCash app or *786#, then paste your Transaction ID below.',
+    txnLabel: 'JazzCash Transaction ID',
+    color: 'orange',
+  },
+  easypaisa: {
+    label: 'EasyPaisa',
+    fields: [
+      { key: 'EasyPaisa Number', value: '0311-1234567' },
+      { key: 'Account Name', value: 'Urban Pickle' },
+    ],
+    note: 'Send money via EasyPaisa app or *786#, then paste your Transaction ID below.',
+    txnLabel: 'EasyPaisa Transaction ID',
+    color: 'emerald',
+  },
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
 const paymentMethods = [
-  {
-    id: 'cod',
-    label: 'Cash on Delivery',
-    sub: 'Pay in cash when your order arrives',
-    icon: <FaMoneyBillWave size={20} />,
-    available: true,
-    color: 'green',
-  },
-  {
-    id: 'bank_transfer',
-    label: 'Bank Transfer',
-    sub: 'Transfer to our bank account manually',
-    icon: <FaUniversity size={20} />,
-    available: true,
-    color: 'blue',
-  },
-  {
-    id: 'jazzcash',
-    label: 'JazzCash',
-    sub: 'Coming soon',
-    icon: <FaMobileAlt size={20} />,
-    available: false,
-    color: 'orange',
-  },
-  {
-    id: 'easypaisa',
-    label: 'EasyPaisa',
-    sub: 'Coming soon',
-    icon: <FaMobileAlt size={20} />,
-    available: false,
-    color: 'emerald',
-  },
+  { id: 'cod', label: 'Cash on Delivery', sub: 'Pay in cash when your order arrives', icon: <FaMoneyBillWave size={20} />, available: true },
+  { id: 'bank_transfer', label: 'Bank Transfer', sub: 'Transfer to our bank account', icon: <FaUniversity size={20} />, available: true },
+  { id: 'jazzcash', label: 'JazzCash', sub: 'Send via JazzCash wallet', icon: <FaMobileAlt size={20} />, available: true },
+  { id: 'easypaisa', label: 'EasyPaisa', sub: 'Send via EasyPaisa wallet', icon: <FaMobileAlt size={20} />, available: true },
 ]
 
 const Checkout = () => {
@@ -75,7 +75,8 @@ const Checkout = () => {
   const handleOrder = async (e) => {
     e.preventDefault()
     if (items.length === 0) return toast.error("Your cart is empty!")
-    if (paymentMethod === 'bank_transfer' && !transactionId.trim()) {
+    const isPrepaid = ['bank_transfer', 'jazzcash', 'easypaisa'].includes(paymentMethod)
+    if (isPrepaid && !transactionId.trim()) {
       return toast.error("Please enter your transaction ID after transferring.")
     }
     setLoading(true)
@@ -85,7 +86,7 @@ const Checkout = () => {
         await axios.post("http://localhost:8000/order/place", {
           address: form,
           paymentMethod,
-          transactionId: paymentMethod === 'bank_transfer' ? transactionId.trim() : '',
+          transactionId: isPrepaid ? transactionId.trim() : '',
           newsletterOptIn,
         }, { headers: { Authorization: `Bearer ${authUser.token}` } })
         localStorage.setItem("hasNewOrder", "true")
@@ -106,7 +107,7 @@ const Checkout = () => {
           items: guestItems,
           address: form,
           paymentMethod,
-          transactionId: paymentMethod === 'bank_transfer' ? transactionId.trim() : '',
+          transactionId: isPrepaid ? transactionId.trim() : '',
           newsletterOptIn,
         })
         await clearCart()
@@ -251,29 +252,33 @@ const Checkout = () => {
               </div>
             </div>
 
-            {/* Bank Transfer Details */}
-            {paymentMethod === 'bank_transfer' && (
-              <div className='bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-col gap-3'>
-                <p className='text-sm font-bold text-blue-800'>Transfer to this account, then paste your Transaction ID below:</p>
-                <div className='grid grid-cols-2 gap-x-4 gap-y-1 text-sm'>
-                  <span className='text-gray-500'>Bank</span>
-                  <span className='font-semibold'>{BANK_DETAILS.bankName}</span>
-                  <span className='text-gray-500'>Account Title</span>
-                  <span className='font-semibold'>{BANK_DETAILS.accountTitle}</span>
-                  <span className='text-gray-500'>Account No.</span>
-                  <span className='font-semibold font-mono'>{BANK_DETAILS.accountNumber}</span>
-                  <span className='text-gray-500'>IBAN</span>
-                  <span className='font-semibold font-mono text-xs break-all'>{BANK_DETAILS.iban}</span>
+            {/* Prepaid payment details (bank / jazzcash / easypaisa) */}
+            {PAYMENT_INFO[paymentMethod] && (() => {
+              const info = PAYMENT_INFO[paymentMethod]
+              const borderColor = { blue: 'border-blue-200 bg-blue-50', orange: 'border-orange-200 bg-orange-50', emerald: 'border-emerald-200 bg-emerald-50' }[info.color]
+              const textColor = { blue: 'text-blue-800', orange: 'text-orange-800', emerald: 'text-emerald-800' }[info.color]
+              const inputBorder = { blue: 'border-blue-300 focus:border-blue-500', orange: 'border-orange-300 focus:border-orange-500', emerald: 'border-emerald-300 focus:border-emerald-500' }[info.color]
+              return (
+                <div className={`border rounded-xl p-4 flex flex-col gap-3 ${borderColor}`}>
+                  <p className={`text-sm font-bold ${textColor}`}>{info.note}</p>
+                  <div className='grid grid-cols-2 gap-x-4 gap-y-1 text-sm'>
+                    {info.fields.map(f => (
+                      <React.Fragment key={f.key}>
+                        <span className='text-gray-500'>{f.key}</span>
+                        <span className='font-semibold font-mono'>{f.value}</span>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  <div>
+                    <label className={`text-sm font-semibold ${textColor}`}>{info.txnLabel} *</label>
+                    <input value={transactionId} onChange={e => setTransactionId(e.target.value)}
+                      placeholder='Paste your transaction / reference ID here'
+                      className={`w-full border rounded-lg px-4 py-2 mt-1 outline-none bg-white text-sm ${inputBorder}`} />
+                  </div>
+                  <p className={`text-xs ${textColor} opacity-70`}>Your order will be processed after payment is verified by our team.</p>
                 </div>
-                <div>
-                  <label className='text-sm font-semibold text-blue-800'>Transaction ID *</label>
-                  <input value={transactionId} onChange={e => setTransactionId(e.target.value)}
-                    placeholder='Paste your transaction / reference ID here'
-                    className='w-full border border-blue-300 rounded-lg px-4 py-2 mt-1 outline-none focus:border-blue-500 bg-white text-sm' />
-                </div>
-                <p className='text-xs text-blue-600'>Your order will be processed after payment is verified by our team.</p>
-              </div>
-            )}
+              )
+            })()}
 
             {/* COD note */}
             {paymentMethod === 'cod' && (

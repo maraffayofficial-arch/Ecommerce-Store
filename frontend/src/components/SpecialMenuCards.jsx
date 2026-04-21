@@ -1,10 +1,11 @@
 import React from 'react'
 import { FaStar } from "react-icons/fa"
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartProvider'
 
 const SpecialMenuCards = ({ item }) => {
     const { addToCart } = useCart()
+    const navigate = useNavigate()
 
     return (
         <div className='flex flex-col rounded-2xl shadow-lg overflow-hidden bg-base-100 hover:shadow-xl transition-shadow duration-300'>
@@ -29,11 +30,12 @@ const SpecialMenuCards = ({ item }) => {
                     >
                         Add to Cart
                     </button>
-                    <Link to={`/product/${item._id}`}>
-                        <button className='border-2 border-green-700 text-green-700 px-5 py-2 rounded-full font-semibold hover:bg-green-50 text-sm'>
-                            View
-                        </button>
-                    </Link>
+                    <button
+                        onClick={() => { addToCart(item._id, 1, item); navigate('/checkout') }}
+                        className='border-2 border-green-700 text-green-700 px-5 py-2 rounded-full font-semibold hover:bg-green-50 text-sm cursor-pointer'
+                    >
+                        Buy Now
+                    </button>
                 </div>
             </div>
         </div>

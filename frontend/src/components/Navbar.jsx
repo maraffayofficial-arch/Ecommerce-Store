@@ -177,17 +177,15 @@ const Navbar = () => {
           </svg>
         </label>
 
-        {/* Cart */}
-        {authUser && (
-          <Link to="/cart" className="relative">
-            <FaShoppingCart className="h-6 w-6" />
-            {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                {cartCount}
-              </span>
-            )}
-          </Link>
-        )}
+        {/* Cart — visible to all users */}
+        <Link to="/cart" className="relative">
+          <FaShoppingCart className="h-6 w-6" />
+          {cartCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+              {cartCount}
+            </span>
+          )}
+        </Link>
 
         {/* Login / Logout */}
         {authUser ? <Logout /> : (
