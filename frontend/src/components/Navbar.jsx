@@ -5,7 +5,6 @@ import { useCart } from '../context/CartProvider'
 import Logout from './Logout'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaShoppingCart, FaSearch } from 'react-icons/fa'
-import logo from '../assets/Urban_pickle_no_BG.png'
 
 const categories = [
   { label: 'All Products', value: '' },
@@ -117,8 +116,8 @@ const Navbar = () => {
         </div>
 
         {/* Logo */}
-        <Link to="/" className="ml-1 shrink-0">
-          <img src={logo} alt="Urban Pickle" className="h-10 w-auto object-contain" />
+        <Link to="/" className="text-green-700 font-bold text-xl ml-1 shrink-0">
+          Urban <span className="text-orange-500">Pickle</span>
         </Link>
 
         {/* Desktop nav links — right of logo, shifted left naturally */}
