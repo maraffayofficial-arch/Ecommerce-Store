@@ -116,12 +116,12 @@ const Navbar = () => {
         </div>
 
         {/* Logo */}
-        <Link to="/" className="text-green-700 font-bold text-xl ml-1 shrink-0">
+        <Link to="/" className="text-green-700 font-bold text-xl ml-5 shrink-0">
           Urban <span className="text-orange-500">Pickle</span>
         </Link>
 
-        {/* Desktop nav links — right of logo, shifted left naturally */}
-        <ul className="hidden lg:flex menu menu-horizontal px-0 gap-0 items-center text-sm ml-2">
+        {/* Desktop nav links */}
+        <ul className="hidden lg:flex menu menu-horizontal px-0 gap-0 items-center text-sm ml-8">
           <li><Link to="/">Home</Link></li>
           <li><Link to="/products">Products</Link></li>
           <li>
@@ -155,7 +155,7 @@ const Navbar = () => {
       </div>
 
       {/* RIGHT */}
-      <div className="navbar-end flex gap-3 items-center pl-2 pr-6">
+      <div className="navbar-end flex gap-3 items-center pl-2 pr-2">
         {/* Desktop Search */}
         <div className="hidden lg:flex items-center border border-gray-300 rounded-full px-3 py-1.5 bg-base-100 gap-2">
           <input type="text" placeholder="Search..."
