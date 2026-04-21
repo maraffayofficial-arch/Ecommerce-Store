@@ -1,7 +1,7 @@
 import orderModel from "../model/order.js"
 import cartModel from "../model/cart.js"
 
-const SHIPPING_FEE = 200
+const SHIPPING_FEE = 199
 
 const placeOrder = async (req, res) => {
     try {

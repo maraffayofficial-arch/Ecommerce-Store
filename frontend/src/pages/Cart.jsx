@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthProvider'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaTrash } from 'react-icons/fa'
 
-const SHIPPING_FEE = 200
+const SHIPPING_FEE = 199
 
 const Cart = () => {
   const { cart, updateItem, removeItem, loading } = useCart()

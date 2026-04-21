@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { FaMoneyBillWave, FaUniversity, FaMobileAlt } from 'react-icons/fa'
 
-const SHIPPING_FEE = 200
+const SHIPPING_FEE = 199
 
 // ── Update these with your real account details ───────────────────────────────
 const PAYMENT_INFO = {
