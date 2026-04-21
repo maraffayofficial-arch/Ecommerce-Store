@@ -61,7 +61,7 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('cod')
   const [form, setForm] = useState({
-    fullName: '', phone: '', email: '', city: '', postalCode: '', street: '',
+    fullName: '', phone: '', altPhone: '', email: '', city: '', postalCode: '', street: '',
   })
   const [transactionId, setTransactionId] = useState('')
   const [newsletterOptIn, setNewsletterOptIn] = useState(false)
@@ -75,6 +75,9 @@ const Checkout = () => {
   const handleOrder = async (e) => {
     e.preventDefault()
     if (items.length === 0) return toast.error("Your cart is empty!")
+    const digits = (v) => v.replace(/\D/g, '').length
+    if (digits(form.phone) < 11) return toast.error("Phone number must be at least 11 digits.")
+    if (form.altPhone && digits(form.altPhone) < 11) return toast.error("Alternate contact number must be at least 11 digits.")
     const isPrepaid = ['bank_transfer', 'jazzcash', 'easypaisa'].includes(paymentMethod)
     if (isPrepaid && !transactionId.trim()) {
       return toast.error("Please enter your transaction ID after transferring.")
@@ -188,6 +191,11 @@ const Checkout = () => {
                 <label className={labelClass}>Phone Number *</label>
                 <input name="phone" value={form.phone} onChange={handleChange} required
                   placeholder='0300-1234567' className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Alternate Contact No. <span className='font-normal text-gray-400'>(optional)</span></label>
+                <input name="altPhone" value={form.altPhone} onChange={handleChange}
+                  placeholder='0311-7654321' className={inputClass} />
               </div>
               <div>
                 <label className={labelClass}>Email <span className='font-normal text-gray-400'>(optional)</span></label>
