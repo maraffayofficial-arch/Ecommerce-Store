@@ -1,6 +1,6 @@
 import React from 'react'
 import bannerImage from "../assets/acahr_front_img.png"
-import logoImg from "../assets/Urban_pickle_no_BG_LOGO.png"
+import logoImg from "../assets/logo_no_bg_.png"
 
 const Banner = () => {
     return (
