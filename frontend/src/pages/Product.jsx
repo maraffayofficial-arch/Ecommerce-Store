@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import CardElements from '../components/CardElements'
 import axios from 'axios'
+import API_URL from '../config'
 
 const categories = [
   { label: 'All', value: '' },
@@ -23,7 +24,7 @@ const Product = () => {
   useEffect(() => {
     const getProducts = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/product")
+        const res = await axios.get(`${API_URL}/product`)
         setAllProducts(res.data)
       } catch (error) {
         console.log(error)

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from "react-hook-form"
 import axios from "axios"
 import toast from 'react-hot-toast'
+import API_URL from '../config'
 
 const Signup = () => {
 
@@ -16,7 +17,7 @@ const Signup = () => {
 
     const onSubmit = async (data) => {
         const userInfo = { name: data.name, email: data.email, password: data.password }
-        await axios.post("http://localhost:8000/user/signup", userInfo)
+        await axios.post(`${API_URL}/user/signup`, userInfo)
             .then((res) => {
                 // console.log(res.data.newUser)
                 if (res.data) {

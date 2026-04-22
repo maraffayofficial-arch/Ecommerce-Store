@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useSettings } from '../context/SettingsProvider'
+import API_URL from '../config'
 
 const Footer = () => {
   const { contactInfo } = useSettings()
@@ -14,7 +15,7 @@ const Footer = () => {
     if (!email.trim()) return toast.error("Please enter your email.")
     setLoading(true)
     try {
-      const res = await axios.post("http://localhost:8000/subscribe", { email })
+      const res = await axios.post(`${API_URL}/subscribe`, { email })
       if (res.data.success) {
         toast.success(res.data.message)
         setSubscribed(true)

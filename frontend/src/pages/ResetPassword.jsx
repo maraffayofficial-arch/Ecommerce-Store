@@ -4,6 +4,7 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import API_URL from '../config'
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams()
@@ -20,7 +21,7 @@ const ResetPassword = () => {
     if (newPassword.length < 6) return toast.error('Password must be at least 6 characters.')
     setLoading(true)
     try {
-      const res = await axios.post('http://localhost:8000/user/reset-password', { email, otp, newPassword })
+      const res = await axios.post(`${API_URL}/user/reset-password`, { email, otp, newPassword })
       if (res.data.success) {
         toast.success('Password reset! You can now log in.')
         navigate('/')

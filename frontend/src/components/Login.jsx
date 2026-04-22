@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import axios from "axios"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
+import API_URL from '../config'
 
 const Login = ({ children, noTrigger }) => {
   const { register, handleSubmit, formState: { errors } } = useForm()
@@ -13,7 +14,7 @@ const Login = ({ children, noTrigger }) => {
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("http://localhost:8000/user/login", {
+      const res = await axios.post(`${API_URL}/user/login`, {
         email: data.email,
         password: data.password
       })
@@ -42,7 +43,7 @@ const Login = ({ children, noTrigger }) => {
     if (otp.length !== 6) return toast.error("Enter the 6-digit OTP.")
     setOtpLoading(true)
     try {
-      const res = await axios.post("http://localhost:8000/user/verify-admin-otp", {
+      const res = await axios.post(`${API_URL}/user/verify-admin-otp`, {
         email: adminEmail, otp
       })
       if (res.data.success) {

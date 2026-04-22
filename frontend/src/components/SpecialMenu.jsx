@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import SpecialMenuCards from './SpecialMenuCards'
 import axios from 'axios'
+import API_URL from '../config'
 
 const SpecialMenu = () => {
     const [product, setProduct] = useState([])
@@ -8,7 +9,7 @@ const SpecialMenu = () => {
     useEffect(() => {
         const getProduct = async () => {
             try {
-                const res = await axios.get("http://localhost:8000/settings/special-menu")
+                const res = await axios.get(`${API_URL}/settings/special-menu`)
                 setProduct(res.data)
             } catch (error) {
                 console.log(error)

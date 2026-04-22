@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useSettings } from '../context/SettingsProvider'
+import API_URL from '../config'
 
 const Contact = () => {
     const { contactInfo } = useSettings()
@@ -12,7 +13,7 @@ const Contact = () => {
 
     const onSubmit = async (data) => {
         try {
-            const res = await axios.post("http://localhost:8000/settings/contact", data)
+            const res = await axios.post(`${API_URL}/settings/contact`, data)
             if (res.data.success) {
                 toast.success("Message sent! We'll get back to you soon.")
                 reset()

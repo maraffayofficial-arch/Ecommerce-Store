@@ -103,6 +103,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import CardElements from './CardElements'
 import axios from 'axios'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import API_URL from '../config'
 
 const Carousel = ({ items, id }) => {
   const trackRef = useRef(null)
@@ -204,7 +205,7 @@ const Cards = () => {
   useEffect(() => {
     const getProduct = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/product")
+        const res = await axios.get(`${API_URL}/product`)
         setProduct(res.data)
       } catch (error) {
         console.log("Error getting products: " + error)

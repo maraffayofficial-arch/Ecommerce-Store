@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthProvider'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import API_URL from '../config'
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-700',
@@ -33,7 +34,7 @@ const Orders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/order/my-orders", authHeader)
+        const res = await axios.get(`${API_URL}/order/my-orders`, authHeader)
         setOrders(res.data)
       } catch (err) {
         console.log(err)
@@ -50,7 +51,7 @@ const Orders = () => {
     if (!confirm("Are you sure you want to cancel this order?")) return
     setCancelling(orderId)
     try {
-      await axios.put(`http://localhost:8000/order/${orderId}/cancel`, {}, authHeader)
+      await axios.put(`${API_URL}/order/${orderId}/cancel`, {}, authHeader)
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'cancelled' } : o))
       toast.success("Order cancelled successfully")
     } catch (err) {
@@ -62,7 +63,7 @@ const Orders = () => {
     if (!confirm("Remove this order from your history?")) return
     setRemoving(orderId)
     try {
-      await axios.delete(`http://localhost:8000/order/${orderId}`, authHeader)
+      await axios.delete(`${API_URL}/order/${orderId}`, authHeader)
       setOrders(prev => prev.filter(o => o._id !== orderId))
       toast.success("Order removed")
     } catch (err) {

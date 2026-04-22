@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import axios from 'axios'
+import API_URL from '../config'
 
 const defaultSettings = { shippingFee: 199, freeShipping: false, globalSale: 0, saleBanner: { enabled: false, title: '', subtitle: '', bgColor: 'green' }, contactInfo: { email: 'urbanpickle@gmail.com', phone: '+92 323-5073652', location: '26000, Multan, Pakistan' }, paymentDetails: { bank: { bankName: '', accountTitle: '', accountNumber: '', iban: '' }, jazzcash: { accountName: '', number: '' }, easypaisa: { accountName: '', number: '' } } }
 
@@ -11,7 +12,7 @@ const SettingsProvider = ({ children }) => {
   const [settings, setSettings] = useState(defaultSettings)
 
   useEffect(() => {
-    axios.get("http://localhost:8000/settings/shipping")
+    axios.get(`${API_URL}/settings/shipping`)
       .then(r => setSettings(r.data)).catch(() => {})
   }, [])
 

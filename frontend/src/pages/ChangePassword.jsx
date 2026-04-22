@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useAuth } from '../context/AuthProvider'
+import API_URL from '../config'
 
 const ChangePassword = () => {
   const [authUser] = useAuth()
@@ -20,7 +21,7 @@ const ChangePassword = () => {
     setLoading(true)
     try {
       const res = await axios.put(
-        'http://localhost:8000/user/change-password',
+        `${API_URL}/user/change-password`,
         { currentPassword, newPassword },
         { headers: { Authorization: `Bearer ${authUser.token}` } }
       )

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import bannerImage from "../assets/acahr_front_img.png"
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import API_URL from '../config'
 
 const Banner = () => {
     const [email, setEmail] = useState('')
@@ -12,7 +13,7 @@ const Banner = () => {
         if (!email.trim()) return toast.error("Please enter your email.")
         setLoading(true)
         try {
-            const res = await axios.post("http://localhost:8000/subscribe", { email })
+            const res = await axios.post(`${API_URL}/subscribe`, { email })
             if (res.data.success) {
                 toast.success(res.data.message)
                 setSubscribed(true)

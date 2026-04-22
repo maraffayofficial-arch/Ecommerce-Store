@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import axios from 'axios'
 import { useAuth } from './AuthProvider'
 import toast from 'react-hot-toast'
+import API_URL from '../config'
 
 export const CartContext = createContext()
 
@@ -19,7 +20,7 @@ export default function CartProvider({ children }) {
     const fetchCart = async () => {
         if (!authUser?.token) return setCart({ items: [] })
         try {
-            const res = await axios.get("http://localhost:8000/cart", authHeader())
+            const res = await axios.get(`${API_URL}/cart`, authHeader())
             setCart(res.data)
         } catch { setCart({ items: [] }) }
     }
@@ -44,7 +45,7 @@ export default function CartProvider({ children }) {
         }
         setLoading(true)
         try {
-            const res = await axios.post("http://localhost:8000/cart/add", { productId, quantity }, authHeader())
+            const res = await axios.post(`${API_URL}/cart/add`, { productId, quantity }, authHeader())
             setCart(res.data.cart)
             toast.success("Added to cart!")
         } catch { toast.error("Failed to add to cart") }
@@ -59,7 +60,7 @@ export default function CartProvider({ children }) {
         }
         setLoading(true)
         try {
-            const res = await axios.put("http://localhost:8000/cart/update", { productId, quantity }, authHeader())
+            const res = await axios.put(`${API_URL}/cart/update`, { productId, quantity }, authHeader())
             setCart(res.data.cart)
         } catch { toast.error("Failed to update cart") }
         finally { setLoading(false) }
@@ -73,7 +74,7 @@ export default function CartProvider({ children }) {
         }
         setLoading(true)
         try {
-            const res = await axios.delete(`http://localhost:8000/cart/remove/${productId}`, authHeader())
+            const res = await axios.delete(`${API_URL}/cart/remove/${productId}`, authHeader())
             setCart(res.data.cart)
             toast.success("Item removed")
         } catch { toast.error("Failed to remove item") }
@@ -82,7 +83,7 @@ export default function CartProvider({ children }) {
 
     const clearCart = async () => {
         if (!authUser) { setGuestItems([]); localStorage.removeItem(GUEST_KEY); return }
-        try { await axios.delete("http://localhost:8000/cart/clear", authHeader()); setCart({ items: [] }) } catch { }
+        try { await axios.delete(`${API_URL}/cart/clear`, authHeader()); setCart({ items: [] }) } catch { }
     }
 
     const activeItems = authUser ? (cart?.items || []) : guestItems

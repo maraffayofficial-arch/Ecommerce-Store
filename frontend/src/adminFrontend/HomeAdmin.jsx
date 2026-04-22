@@ -5,6 +5,7 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 import { FaTrash, FaEdit, FaSignOutAlt, FaCloudUploadAlt, FaTimes, FaFileExcel } from 'react-icons/fa'
 import * as XLSX from 'xlsx'
+import API_URL from '../config'
 
 const emptyForm = { title: '', discription: '', price: '', weight: '', category: 'achar', discount: 0 }
 
@@ -60,7 +61,7 @@ const HomeAdmin = () => {
 
   const fetchShipping = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/settings/shipping")
+      const res = await axios.get(`${API_URL}/settings/shipping`)
       setShipping(res.data)
       if (res.data.saleBanner) setSaleBanner({ enabled: false, title: '', subtitle: '', bgColor: 'green', imageUrl: '', ...res.data.saleBanner })
       if (res.data.contactInfo) setContactInfo({ email: '', phone: '', location: '', ...res.data.contactInfo })
@@ -75,7 +76,7 @@ const HomeAdmin = () => {
   const savePaymentDetails = async () => {
     setPaymentLoading(true)
     try {
-      await axios.put("http://localhost:8000/settings/shipping", { paymentDetails }, authHeader)
+      await axios.put(`${API_URL}/settings/shipping`, { paymentDetails }, authHeader)
       toast.success("Payment details saved!")
     } catch { toast.error("Failed to save payment details") }
     finally { setPaymentLoading(false) }
@@ -84,7 +85,7 @@ const HomeAdmin = () => {
   const saveContactInfo = async () => {
     setContactInfoLoading(true)
     try {
-      await axios.put("http://localhost:8000/settings/shipping", { contactInfo }, authHeader)
+      await axios.put(`${API_URL}/settings/shipping`, { contactInfo }, authHeader)
       toast.success("Contact info saved!")
     } catch { toast.error("Failed to save contact info") }
     finally { setContactInfoLoading(false) }
@@ -93,7 +94,7 @@ const HomeAdmin = () => {
   const saveSaleBanner = async () => {
     setSaleBannerLoading(true)
     try {
-      await axios.put("http://localhost:8000/settings/shipping", { saleBanner }, authHeader)
+      await axios.put(`${API_URL}/settings/shipping`, { saleBanner }, authHeader)
       toast.success("Sale Banner saved!")
     } catch { toast.error("Failed to save Sale Banner") }
     finally { setSaleBannerLoading(false) }
@@ -105,7 +106,7 @@ const HomeAdmin = () => {
     try {
       const fd = new FormData()
       fd.append("image", file)
-      const res = await axios.post("http://localhost:8000/settings/banner-image", fd, {
+      const res = await axios.post(`${API_URL}/settings/banner-image`, fd, {
         headers: { Authorization: `Bearer ${authUser?.token}`, "Content-Type": "multipart/form-data" }
       })
       setSaleBanner(s => ({ ...s, imageUrl: res.data.imageUrl }))
@@ -116,7 +117,7 @@ const HomeAdmin = () => {
 
   const fetchSpecialMenu = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/settings/special-menu")
+      const res = await axios.get(`${API_URL}/settings/special-menu`)
       setSpecialMenu(res.data.map(p => p._id))
     } catch { }
   }
@@ -132,7 +133,7 @@ const HomeAdmin = () => {
   const saveSpecialMenu = async () => {
     setSpecialMenuLoading(true)
     try {
-      await axios.put("http://localhost:8000/settings/special-menu", { productIds: specialMenu }, authHeader)
+      await axios.put(`${API_URL}/settings/special-menu`, { productIds: specialMenu }, authHeader)
       toast.success("Special Menu saved!")
     } catch { toast.error("Failed to save Special Menu") }
     finally { setSpecialMenuLoading(false) }
@@ -141,7 +142,7 @@ const HomeAdmin = () => {
   const saveShipping = async () => {
     setShippingLoading(true)
     try {
-      await axios.put("http://localhost:8000/settings/shipping", shipping, authHeader)
+      await axios.put(`${API_URL}/settings/shipping`, shipping, authHeader)
       toast.success("Shipping settings saved!")
     } catch { toast.error("Failed to save settings") }
     finally { setShippingLoading(false) }
@@ -149,14 +150,14 @@ const HomeAdmin = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/product")
+      const res = await axios.get(`${API_URL}/product`)
       setProducts(res.data)
     } catch { toast.error("Failed to load products") }
   }
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/order/all", authHeader)
+      const res = await axios.get(`${API_URL}/order/all`, authHeader)
       const fetched = res.data
       setOrders(fetched)
       const seen = JSON.parse(localStorage.getItem("seenAdminOrderIds") || "[]")
@@ -215,11 +216,11 @@ const HomeAdmin = () => {
       }
 
       if (editId) {
-        await axios.put(`http://localhost:8000/product/${editId}`, formData, multipartHeader)
+        await axios.put(`${API_URL}/product/${editId}`, formData, multipartHeader)
         toast.success("Product updated!")
         setEditId(null)
       } else {
-        await axios.post("http://localhost:8000/product", formData, multipartHeader)
+        await axios.post(`${API_URL}/product`, formData, multipartHeader)
         toast.success("Product added!")
       }
 
@@ -253,7 +254,7 @@ const HomeAdmin = () => {
   const handleDelete = async (id) => {
     if (!confirm("Delete this product?")) return
     try {
-      await axios.delete(`http://localhost:8000/product/${id}`, authHeader)
+      await axios.delete(`${API_URL}/product/${id}`, authHeader)
       toast.success("Product deleted")
       fetchProducts()
     } catch { toast.error("Failed to delete") }
@@ -261,7 +262,7 @@ const HomeAdmin = () => {
 
   const updateStatus = async (id, status) => {
     try {
-      await axios.put(`http://localhost:8000/order/${id}/status`, { status }, authHeader)
+      await axios.put(`${API_URL}/order/${id}/status`, { status }, authHeader)
       toast.success("Order status updated")
       fetchOrders()
     } catch { toast.error("Failed to update status") }
@@ -270,7 +271,7 @@ const HomeAdmin = () => {
   const removeOrder = async (id) => {
     if (!confirm("Remove this order permanently?")) return
     try {
-      await axios.delete(`http://localhost:8000/order/${id}/admin`, authHeader)
+      await axios.delete(`${API_URL}/order/${id}/admin`, authHeader)
       setOrders(prev => prev.filter(o => o._id !== id))
       toast.success("Order removed")
     } catch { toast.error("Failed to remove order") }

@@ -8,6 +8,7 @@ import { FaStar } from 'react-icons/fa'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import CardElements from '../components/CardElements'
+import API_URL from '../config'
 
 const ProductDetail = () => {
   const { id } = useParams()
@@ -27,8 +28,8 @@ const ProductDetail = () => {
       setActiveImg(0)
       try {
         const [productRes, allRes] = await Promise.all([
-          axios.get(`http://localhost:8000/product/${id}`),
-          axios.get("http://localhost:8000/product")
+          axios.get(`${API_URL}/product/${id}`),
+          axios.get(`${API_URL}/product`)
         ])
         setProduct(productRes.data)
         const others = allRes.data.filter(p => p._id !== id && p.category === productRes.data.category)

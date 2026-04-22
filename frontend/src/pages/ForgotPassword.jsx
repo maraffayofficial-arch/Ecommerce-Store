@@ -4,6 +4,7 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import API_URL from '../config'
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('')
@@ -15,7 +16,7 @@ const ForgotPassword = () => {
     if (!email.trim()) return toast.error('Please enter your email.')
     setLoading(true)
     try {
-      const res = await axios.post('http://localhost:8000/user/forgot-password', { email })
+      const res = await axios.post(`${API_URL}/user/forgot-password`, { email })
       if (res.data.success) {
         toast.success('OTP sent! Check your email.')
         navigate(`/reset-password?email=${encodeURIComponent(email)}`)

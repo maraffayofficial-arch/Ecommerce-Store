@@ -8,6 +8,7 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { FaMoneyBillWave, FaUniversity, FaMobileAlt } from 'react-icons/fa'
+import API_URL from '../config'
 
 const FREE_THRESHOLD = 10000
 
@@ -99,7 +100,7 @@ const Checkout = () => {
     try {
       if (authUser) {
         // Logged-in order — cart is DB-backed
-        await axios.post("http://localhost:8000/order/place", {
+        await axios.post(`${API_URL}/order/place`, {
           address: form,
           paymentMethod,
           transactionId: isPrepaid ? transactionId.trim() : '',
@@ -119,7 +120,7 @@ const Checkout = () => {
           image: i.productId.images?.[0] || '',
           quantity: i.quantity,
         }))
-        await axios.post("http://localhost:8000/order/place-guest", {
+        await axios.post(`${API_URL}/order/place-guest`, {
           items: guestItems,
           address: form,
           paymentMethod,
