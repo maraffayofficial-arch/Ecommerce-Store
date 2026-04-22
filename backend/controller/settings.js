@@ -32,6 +32,7 @@ export const updateShippingSettings = async (req, res) => {
         if (globalSale !== undefined) settings.globalSale = Number(globalSale)
         if (saleBanner !== undefined) { settings.saleBanner = saleBanner; settings.markModified('saleBanner') }
         if (req.body.contactInfo !== undefined) { settings.contactInfo = req.body.contactInfo; settings.markModified('contactInfo') }
+        if (req.body.paymentDetails !== undefined) { settings.paymentDetails = req.body.paymentDetails; settings.markModified('paymentDetails') }
         await settings.save()
         res.json({ success: true, settings })
     } catch (error) {

@@ -17,6 +17,22 @@ const settingsSchema = mongoose.Schema({
         phone: { type: String, default: '+92 323-5073652' },
         location: { type: String, default: '26000, Multan, Pakistan' },
     },
+    paymentDetails: {
+        bank: {
+            bankName:      { type: String, default: '' },
+            accountTitle:  { type: String, default: '' },
+            accountNumber: { type: String, default: '' },
+            iban:          { type: String, default: '' },
+        },
+        jazzcash: {
+            accountName: { type: String, default: '' },
+            number:      { type: String, default: '' },
+        },
+        easypaisa: {
+            accountName: { type: String, default: '' },
+            number:      { type: String, default: '' },
+        },
+    },
 }, { timestamps: true })
 
 const settingsModel = mongoose.model("settings_collection", settingsSchema)

@@ -11,42 +11,6 @@ import { FaMoneyBillWave, FaUniversity, FaMobileAlt } from 'react-icons/fa'
 
 const FREE_THRESHOLD = 10000
 
-// ── Update these with your real account details ───────────────────────────────
-const PAYMENT_INFO = {
-  bank_transfer: {
-    label: 'Bank Transfer',
-    fields: [
-      { key: 'Bank', value: 'Meezan Bank' },
-      { key: 'Account Title', value: 'Urban Pickle' },
-      { key: 'Account No.', value: '0123-4567890-1' },
-      { key: 'IBAN', value: 'PK00MEZN0001234567890123' },
-    ],
-    note: 'Transfer to our bank account, then paste your Transaction ID below.',
-    txnLabel: 'Transaction / Reference ID',
-    color: 'blue',
-  },
-  jazzcash: {
-    label: 'JazzCash',
-    fields: [
-      { key: 'JazzCash Number', value: '0300-1234567' },
-      { key: 'Account Name', value: 'Urban Pickle' },
-    ],
-    note: 'Send money via JazzCash app or *786#, then paste your Transaction ID below.',
-    txnLabel: 'JazzCash Transaction ID',
-    color: 'orange',
-  },
-  easypaisa: {
-    label: 'EasyPaisa',
-    fields: [
-      { key: 'EasyPaisa Number', value: '0311-1234567' },
-      { key: 'Account Name', value: 'Urban Pickle' },
-    ],
-    note: 'Send money via EasyPaisa app or *786#, then paste your Transaction ID below.',
-    txnLabel: 'EasyPaisa Transaction ID',
-    color: 'emerald',
-  },
-}
-// ─────────────────────────────────────────────────────────────────────────────
 
 const paymentMethods = [
   { id: 'cod', label: 'Cash on Delivery', sub: 'Pay in cash when your order arrives', icon: <FaMoneyBillWave size={20} />, available: true },
@@ -66,17 +30,55 @@ const Checkout = () => {
     fullName: '', phone: '', altPhone: '', email: '', city: '', postalCode: '', street: '',
   })
   const [transactionId, setTransactionId] = useState('')
+  const [txnError, setTxnError] = useState(false)
   const [newsletterOptIn, setNewsletterOptIn] = useState(false)
 
   const items = cart?.items || []
-  const { globalSale } = shippingSettings
+  const { globalSale, paymentDetails } = shippingSettings
+
+  const PAYMENT_INFO = {
+    bank_transfer: {
+      label: 'Bank Transfer',
+      fields: [
+        { key: 'Bank', value: paymentDetails?.bank?.bankName },
+        { key: 'Account Title', value: paymentDetails?.bank?.accountTitle },
+        { key: 'Account No.', value: paymentDetails?.bank?.accountNumber },
+        { key: 'IBAN', value: paymentDetails?.bank?.iban },
+      ].filter(f => f.value),
+      note: 'Transfer to our bank account, then paste your Transaction ID below.',
+      txnLabel: 'Transaction / Reference ID',
+      color: 'blue',
+    },
+    jazzcash: {
+      label: 'JazzCash',
+      fields: [
+        { key: 'JazzCash Number', value: paymentDetails?.jazzcash?.number },
+        { key: 'Account Name', value: paymentDetails?.jazzcash?.accountName },
+      ].filter(f => f.value),
+      note: 'Send money via JazzCash app or *786#, then paste your Transaction ID below.',
+      txnLabel: 'JazzCash Transaction ID',
+      color: 'orange',
+    },
+    easypaisa: {
+      label: 'EasyPaisa',
+      fields: [
+        { key: 'EasyPaisa Number', value: paymentDetails?.easypaisa?.number },
+        { key: 'Account Name', value: paymentDetails?.easypaisa?.accountName },
+      ].filter(f => f.value),
+      note: 'Send money via EasyPaisa app or *786#, then paste your Transaction ID below.',
+      txnLabel: 'EasyPaisa Transaction ID',
+      color: 'emerald',
+    },
+  }
   const effectivePrice = (product) => {
     const d = globalSale > 0 ? globalSale : (product.discount || 0)
     return d > 0 ? Math.round(product.price * (1 - d / 100)) : product.price
   }
   const subtotal = items.reduce((sum, i) => sum + effectivePrice(i.productId) * i.quantity, 0)
   const shippingFee = (shippingSettings.freeShipping || subtotal >= FREE_THRESHOLD) ? 0 : shippingSettings.shippingFee
-  const total = subtotal + shippingFee
+  const isPrepaid = ['bank_transfer', 'jazzcash', 'easypaisa'].includes(paymentMethod)
+  const prepaidDiscount = isPrepaid ? 100 : 0
+  const total = subtotal + shippingFee - prepaidDiscount
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -86,10 +88,13 @@ const Checkout = () => {
     const digits = (v) => v.replace(/\D/g, '').length
     if (digits(form.phone) < 11) return toast.error("Phone number must be at least 11 digits.")
     if (form.altPhone && digits(form.altPhone) < 11) return toast.error("Alternate contact number must be at least 11 digits.")
-    const isPrepaid = ['bank_transfer', 'jazzcash', 'easypaisa'].includes(paymentMethod)
     if (isPrepaid && !transactionId.trim()) {
-      return toast.error("Please enter your transaction ID after transferring.")
+      setTxnError(true)
+      toast.error("Please enter your transaction ID before placing the order.")
+      document.getElementById('txn-input')?.focus()
+      return
     }
+    setTxnError(false)
     setLoading(true)
     try {
       if (authUser) {
@@ -171,6 +176,13 @@ const Checkout = () => {
                 <p className='font-bold text-sm'>Rs. {effectivePrice(i.productId) * i.quantity}</p>
               </div>
             ))}
+            {/* Prepaid promo banner */}
+            {!isPrepaid && (
+              <div className='mt-3 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-xs text-orange-700 font-medium'>
+                💳 Pay online (Bank / JazzCash / EasyPaisa) and get <span className='font-bold'>Rs. 100 OFF</span> your order!
+              </div>
+            )}
+
             <div className='mt-4 border-t border-base-200 pt-3 space-y-1'>
               <div className='flex justify-between text-sm text-gray-500'>
                 <span>Subtotal</span><span>Rs. {subtotal}</span>
@@ -181,6 +193,12 @@ const Checkout = () => {
                   ? <span className='text-green-600 font-semibold'>Free 🎉</span>
                   : <span>Rs. {shippingFee}</span>}
               </div>
+              {isPrepaid && (
+                <div className='flex justify-between text-sm text-green-600 font-semibold'>
+                  <span>Online Payment Discount</span>
+                  <span>− Rs. 100</span>
+                </div>
+              )}
               <div className='flex justify-between text-xl font-bold pt-2 border-t border-base-200'>
                 <span>Total</span>
                 <span className='text-green-700'>Rs. {total}</span>
@@ -244,7 +262,7 @@ const Checkout = () => {
                 {paymentMethods.map(pm => (
                   <button key={pm.id} type='button'
                     disabled={!pm.available}
-                    onClick={() => pm.available && setPaymentMethod(pm.id)}
+                    onClick={() => { if (pm.available) { setPaymentMethod(pm.id); setTxnError(false); setTransactionId('') } }}
                     className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 text-left transition-all
                       ${!pm.available ? 'opacity-40 cursor-not-allowed border-gray-200 bg-gray-50' :
                         paymentMethod === pm.id
@@ -289,10 +307,16 @@ const Checkout = () => {
                     ))}
                   </div>
                   <div>
-                    <label className={`text-sm font-semibold ${textColor}`}>{info.txnLabel} *</label>
-                    <input value={transactionId} onChange={e => setTransactionId(e.target.value)}
+                    <label className={`text-sm font-semibold ${textColor}`}>{info.txnLabel} <span className='text-red-500'>*</span></label>
+                    <input
+                      id='txn-input'
+                      value={transactionId}
+                      onChange={e => { setTransactionId(e.target.value); setTxnError(false) }}
                       placeholder='Paste your transaction / reference ID here'
-                      className={`w-full border rounded-lg px-4 py-2 mt-1 outline-none bg-white text-sm ${inputBorder}`} />
+                      className={`w-full border-2 rounded-lg px-4 py-2 mt-1 outline-none bg-white text-sm transition-colors
+                        ${txnError ? 'border-red-500 bg-red-50 placeholder-red-400' : inputBorder}`}
+                    />
+                    {txnError && <p className='text-red-500 text-xs mt-1 font-semibold'>⚠ Transaction ID is required to place the order.</p>}
                   </div>
                   <p className={`text-xs ${textColor} opacity-70`}>Your order will be processed after payment is verified by our team.</p>
                 </div>

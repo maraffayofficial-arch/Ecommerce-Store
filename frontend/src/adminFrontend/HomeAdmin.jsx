@@ -32,6 +32,12 @@ const HomeAdmin = () => {
   const [bannerImgLoading, setBannerImgLoading] = useState(false)
   const [contactInfo, setContactInfo] = useState({ email: '', phone: '', location: '' })
   const [contactInfoLoading, setContactInfoLoading] = useState(false)
+  const [paymentDetails, setPaymentDetails] = useState({
+    bank: { bankName: '', accountTitle: '', accountNumber: '', iban: '' },
+    jazzcash: { accountName: '', number: '' },
+    easypaisa: { accountName: '', number: '' },
+  })
+  const [paymentLoading, setPaymentLoading] = useState(false)
 
   // Image state
   const [selectedFiles, setSelectedFiles] = useState([])   // File objects for new upload
@@ -58,7 +64,21 @@ const HomeAdmin = () => {
       setShipping(res.data)
       if (res.data.saleBanner) setSaleBanner({ enabled: false, title: '', subtitle: '', bgColor: 'green', imageUrl: '', ...res.data.saleBanner })
       if (res.data.contactInfo) setContactInfo({ email: '', phone: '', location: '', ...res.data.contactInfo })
+      if (res.data.paymentDetails) setPaymentDetails(prev => ({
+        bank: { ...prev.bank, ...res.data.paymentDetails.bank },
+        jazzcash: { ...prev.jazzcash, ...res.data.paymentDetails.jazzcash },
+        easypaisa: { ...prev.easypaisa, ...res.data.paymentDetails.easypaisa },
+      }))
     } catch { }
+  }
+
+  const savePaymentDetails = async () => {
+    setPaymentLoading(true)
+    try {
+      await axios.put("http://localhost:8000/settings/shipping", { paymentDetails }, authHeader)
+      toast.success("Payment details saved!")
+    } catch { toast.error("Failed to save payment details") }
+    finally { setPaymentLoading(false) }
   }
 
   const saveContactInfo = async () => {
@@ -929,6 +949,87 @@ const HomeAdmin = () => {
               <button onClick={saveContactInfo} disabled={contactInfoLoading}
                 className='bg-green-700 text-white px-8 py-2 rounded-full font-semibold hover:bg-green-800 disabled:opacity-60 cursor-pointer w-fit'>
                 {contactInfoLoading ? 'Saving...' : 'Save Contact Info'}
+              </button>
+            </div>
+
+            {/* Payment Details */}
+            <div className='bg-white shadow-md rounded-xl p-6 mt-8'>
+              <div className='mb-5'>
+                <h2 className='text-xl font-bold text-gray-800'>Payment Details</h2>
+                <p className='text-sm text-gray-400 mt-0.5'>These details are shown to customers on the checkout page.</p>
+              </div>
+
+              {/* Bank Transfer */}
+              <div className='mb-6'>
+                <h3 className='font-bold text-blue-700 mb-3 flex items-center gap-2'>🏦 Bank Transfer</h3>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  {[
+                    { label: 'Bank Name', key: 'bankName', placeholder: 'e.g. Meezan Bank' },
+                    { label: 'Account Title', key: 'accountTitle', placeholder: 'e.g. Urban Pickle' },
+                    { label: 'Account Number', key: 'accountNumber', placeholder: 'e.g. 0123-4567890-1' },
+                    { label: 'IBAN', key: 'iban', placeholder: 'e.g. PK00MEZN000...' },
+                  ].map(({ label, key, placeholder }) => (
+                    <div key={key}>
+                      <label className='text-sm font-semibold text-gray-500 block mb-1'>{label}</label>
+                      <p className='text-xs text-gray-400 mb-1'>Current: <span className='font-medium text-gray-600'>{paymentDetails.bank[key] || '—'}</span></p>
+                      <input
+                        value={paymentDetails.bank[key]}
+                        onChange={e => setPaymentDetails(p => ({ ...p, bank: { ...p.bank, [key]: e.target.value } }))}
+                        placeholder={placeholder}
+                        className='w-full border rounded-lg px-4 py-2 outline-none focus:border-blue-400 text-sm'
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* JazzCash */}
+              <div className='mb-6'>
+                <h3 className='font-bold text-orange-600 mb-3'>📱 JazzCash</h3>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  {[
+                    { label: 'Account Name', key: 'accountName', placeholder: 'e.g. Urban Pickle' },
+                    { label: 'JazzCash Number', key: 'number', placeholder: 'e.g. 0300-1234567' },
+                  ].map(({ label, key, placeholder }) => (
+                    <div key={key}>
+                      <label className='text-sm font-semibold text-gray-500 block mb-1'>{label}</label>
+                      <p className='text-xs text-gray-400 mb-1'>Current: <span className='font-medium text-gray-600'>{paymentDetails.jazzcash[key] || '—'}</span></p>
+                      <input
+                        value={paymentDetails.jazzcash[key]}
+                        onChange={e => setPaymentDetails(p => ({ ...p, jazzcash: { ...p.jazzcash, [key]: e.target.value } }))}
+                        placeholder={placeholder}
+                        className='w-full border rounded-lg px-4 py-2 outline-none focus:border-orange-400 text-sm'
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* EasyPaisa */}
+              <div className='mb-6'>
+                <h3 className='font-bold text-emerald-600 mb-3'>📱 EasyPaisa</h3>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  {[
+                    { label: 'Account Name', key: 'accountName', placeholder: 'e.g. Urban Pickle' },
+                    { label: 'EasyPaisa Number', key: 'number', placeholder: 'e.g. 0311-1234567' },
+                  ].map(({ label, key, placeholder }) => (
+                    <div key={key}>
+                      <label className='text-sm font-semibold text-gray-500 block mb-1'>{label}</label>
+                      <p className='text-xs text-gray-400 mb-1'>Current: <span className='font-medium text-gray-600'>{paymentDetails.easypaisa[key] || '—'}</span></p>
+                      <input
+                        value={paymentDetails.easypaisa[key]}
+                        onChange={e => setPaymentDetails(p => ({ ...p, easypaisa: { ...p.easypaisa, [key]: e.target.value } }))}
+                        placeholder={placeholder}
+                        className='w-full border rounded-lg px-4 py-2 outline-none focus:border-emerald-400 text-sm'
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button onClick={savePaymentDetails} disabled={paymentLoading}
+                className='bg-orange-500 text-white px-8 py-2 rounded-full font-semibold hover:bg-orange-600 disabled:opacity-60 cursor-pointer w-fit'>
+                {paymentLoading ? 'Saving...' : 'Save Payment Details'}
               </button>
             </div>
           </div>
