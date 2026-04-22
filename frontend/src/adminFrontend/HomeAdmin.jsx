@@ -21,8 +21,15 @@ const HomeAdmin = () => {
   const [editId, setEditId] = useState(null)
   const [tab, setTab] = useState('products')
   const [loading, setLoading] = useState(false)
-  const [shipping, setShipping] = useState({ shippingFee: 199, freeShipping: false })
+  const [shipping, setShipping] = useState({ shippingFee: 199, freeShipping: false, globalSale: 0 })
   const [shippingLoading, setShippingLoading] = useState(false)
+  const [specialMenu, setSpecialMenu] = useState([])
+  const [specialMenuLoading, setSpecialMenuLoading] = useState(false)
+  const [specialMenuSearch, setSpecialMenuSearch] = useState('')
+  const [productSearch, setProductSearch] = useState('')
+  const [saleBanner, setSaleBanner] = useState({ enabled: false, title: '', subtitle: '', bgColor: 'green', imageUrl: '' })
+  const [saleBannerLoading, setSaleBannerLoading] = useState(false)
+  const [bannerImgLoading, setBannerImgLoading] = useState(false)
 
   // Image state
   const [selectedFiles, setSelectedFiles] = useState([])   // File objects for new upload
@@ -40,13 +47,63 @@ const HomeAdmin = () => {
     fetchProducts()
     fetchOrders()
     fetchShipping()
+    fetchSpecialMenu()
   }, [authUser])
 
   const fetchShipping = async () => {
     try {
       const res = await axios.get("http://localhost:8000/settings/shipping")
       setShipping(res.data)
+      if (res.data.saleBanner) setSaleBanner({ enabled: false, title: '', subtitle: '', bgColor: 'green', imageUrl: '', ...res.data.saleBanner })
     } catch { }
+  }
+
+  const saveSaleBanner = async () => {
+    setSaleBannerLoading(true)
+    try {
+      await axios.put("http://localhost:8000/settings/shipping", { saleBanner }, authHeader)
+      toast.success("Sale Banner saved!")
+    } catch { toast.error("Failed to save Sale Banner") }
+    finally { setSaleBannerLoading(false) }
+  }
+
+  const uploadBannerImg = async (file) => {
+    if (!file) return
+    setBannerImgLoading(true)
+    try {
+      const fd = new FormData()
+      fd.append("image", file)
+      const res = await axios.post("http://localhost:8000/settings/banner-image", fd, {
+        headers: { Authorization: `Bearer ${authUser?.token}`, "Content-Type": "multipart/form-data" }
+      })
+      setSaleBanner(s => ({ ...s, imageUrl: res.data.imageUrl }))
+      toast.success("Banner image uploaded!")
+    } catch { toast.error("Failed to upload image") }
+    finally { setBannerImgLoading(false) }
+  }
+
+  const fetchSpecialMenu = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/settings/special-menu")
+      setSpecialMenu(res.data.map(p => p._id))
+    } catch { }
+  }
+
+  const toggleSpecialMenu = (id) => {
+    setSpecialMenu(prev => {
+      if (prev.includes(id)) return prev.filter(x => x !== id)
+      if (prev.length >= 6) { toast.error("Maximum 6 products allowed in Special Menu"); return prev }
+      return [...prev, id]
+    })
+  }
+
+  const saveSpecialMenu = async () => {
+    setSpecialMenuLoading(true)
+    try {
+      await axios.put("http://localhost:8000/settings/special-menu", { productIds: specialMenu }, authHeader)
+      toast.success("Special Menu saved!")
+    } catch { toast.error("Failed to save Special Menu") }
+    finally { setSpecialMenuLoading(false) }
   }
 
   const saveShipping = async () => {
@@ -260,21 +317,21 @@ const HomeAdmin = () => {
   return (
     <div className='min-h-screen bg-gray-50'>
       {/* Admin Header */}
-      <div className='bg-green-700 text-white px-6 py-4 flex justify-between items-center'>
-        <h1 className='text-2xl font-bold'>Urban Pickle — Admin Panel</h1>
-        <button onClick={() => navigate('/')} className='flex items-center gap-2 bg-white text-green-700 px-4 py-1 rounded-full font-semibold hover:bg-gray-100'>
-          <FaSignOutAlt /> Back to Site
+      <div className='bg-green-700 text-white px-4 sm:px-6 py-4 flex justify-between items-center gap-3'>
+        <h1 className='text-lg sm:text-2xl font-bold truncate'>Urban Pickle — Admin Panel</h1>
+        <button onClick={() => navigate('/')} className='flex items-center gap-2 bg-white text-green-700 px-3 sm:px-4 py-1 rounded-full font-semibold hover:bg-gray-100 shrink-0 text-sm sm:text-base'>
+          <FaSignOutAlt /> <span className='hidden sm:inline'>Back to Site</span><span className='sm:hidden'>Exit</span>
         </button>
       </div>
 
       {/* Tabs */}
-      <div className='flex border-b bg-white px-6'>
+      <div className='flex border-b bg-white px-2 sm:px-6 overflow-x-auto'>
         <button onClick={() => setTab('products')}
-          className={`py-3 px-6 font-semibold border-b-2 transition-all ${tab === 'products' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500'}`}>
+          className={`py-3 px-4 sm:px-6 font-semibold border-b-2 transition-all whitespace-nowrap ${tab === 'products' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500'}`}>
           Products
         </button>
         <button onClick={handleOrdersTab}
-          className={`py-3 px-6 font-semibold border-b-2 transition-all flex items-center gap-2 ${tab === 'orders' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500'}`}>
+          className={`py-3 px-4 sm:px-6 font-semibold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${tab === 'orders' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500'}`}>
           Orders
           {unseenCount > 0 && (
             <span className="bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
@@ -283,12 +340,12 @@ const HomeAdmin = () => {
           )}
         </button>
         <button onClick={() => setTab('settings')}
-          className={`py-3 px-6 font-semibold border-b-2 transition-all ${tab === 'settings' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500'}`}>
+          className={`py-3 px-4 sm:px-6 font-semibold border-b-2 transition-all whitespace-nowrap ${tab === 'settings' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500'}`}>
           Settings
         </button>
       </div>
 
-      <div className='max-w-6xl mx-auto px-4 py-8'>
+      <div className='max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8'>
 
         {/* PRODUCTS TAB */}
         {tab === 'products' && (
@@ -415,9 +472,32 @@ const HomeAdmin = () => {
             </div>
 
             {/* Products List */}
-            <h2 className='text-xl font-bold mb-4'>All Products ({products.length})</h2>
+            <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4'>
+              <h2 className='text-xl font-bold'>
+                {productSearch ? `Results (${products.filter(p => p.title.toLowerCase().includes(productSearch.toLowerCase()) || p.category.toLowerCase().includes(productSearch.toLowerCase())).length})` : `Latest Products (showing ${Math.min(10, products.length)} of ${products.length})`}
+              </h2>
+              <div className='relative w-full sm:w-64'>
+                <input
+                  type='text'
+                  placeholder='Search by name or category...'
+                  value={productSearch}
+                  onChange={e => setProductSearch(e.target.value)}
+                  className='w-full border border-gray-200 rounded-full px-4 py-2 pr-8 outline-none focus:border-green-500 text-sm'
+                />
+                {productSearch && (
+                  <button onClick={() => setProductSearch('')}
+                    className='absolute right-3 top-2 text-gray-400 hover:text-gray-600 text-lg leading-none'>×</button>
+                )}
+              </div>
+            </div>
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-              {products.map(p => (
+              {(productSearch
+                ? products.filter(p =>
+                    p.title.toLowerCase().includes(productSearch.toLowerCase()) ||
+                    p.category.toLowerCase().includes(productSearch.toLowerCase())
+                  )
+                : products.slice(0, 10)
+              ).map(p => (
                 <div key={p._id} className='bg-white shadow-md rounded-xl overflow-hidden'>
                   {/* Image strip */}
                   <div className='relative'>
@@ -458,7 +538,7 @@ const HomeAdmin = () => {
         {/* ORDERS TAB */}
         {tab === 'orders' && (
           <>
-            <div className='flex flex-wrap items-center justify-between gap-3 mb-5'>
+            <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5'>
               <div className='flex items-center gap-3'>
                 <h2 className='text-xl font-bold'>All Customer Orders</h2>
                 {selectedOrders.length > 0 && (
@@ -487,19 +567,19 @@ const HomeAdmin = () => {
               {orders.map(order => (
                 <div key={order._id}
                   className={`bg-white shadow-md rounded-xl p-5 border-2 transition-colors ${selectedOrders.includes(order._id) ? 'border-green-500' : 'border-transparent'}`}>
-                  <div className='flex flex-wrap justify-between items-start gap-3 mb-3'>
-                    <div className='flex items-start gap-3'>
+                  <div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3'>
+                    <div className='flex items-start gap-3 min-w-0'>
                       {/* Checkbox */}
                       <input type='checkbox'
                         checked={selectedOrders.includes(order._id)}
                         onChange={() => toggleSelectOrder(order._id)}
                         className='mt-1 w-4 h-4 accent-green-700 shrink-0 cursor-pointer' />
-                      <div>
-                        <p className='font-semibold text-gray-800'>
+                      <div className='min-w-0'>
+                        <p className='font-semibold text-gray-800 break-words'>
                           {order.guestOrder ? <span className='text-gray-400 italic'>Guest Order</span> : `${order.userId?.name} — ${order.userId?.email}`}
                         </p>
                         <p className='text-sm text-gray-500'>{formatDateTime(order.createdAt)}</p>
-                        <p className='text-sm text-gray-600'>{order.address.fullName}, {order.address.street}, {order.address.city} | {order.address.phone}{order.address.altPhone ? ` / ${order.address.altPhone}` : ''}</p>
+                        <p className='text-sm text-gray-600 break-words'>{order.address.fullName}, {order.address.street}, {order.address.city} | {order.address.phone}{order.address.altPhone ? ` / ${order.address.altPhone}` : ''}</p>
                         <div className='flex items-center gap-2 mt-1 flex-wrap'>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold capitalize
                             ${order.paymentMethod === 'cod' ? 'bg-yellow-100 text-yellow-700' :
@@ -511,12 +591,12 @@ const HomeAdmin = () => {
                              order.paymentMethod === 'easypaisa' ? 'EasyPaisa' : 'Bank Transfer'}
                           </span>
                           {order.transactionId && (
-                            <span className='text-xs text-gray-500'>TXN: <span className='font-mono font-semibold text-gray-700'>{order.transactionId}</span></span>
+                            <span className='text-xs text-gray-500 break-all'>TXN: <span className='font-mono font-semibold text-gray-700'>{order.transactionId}</span></span>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className='flex items-center gap-3 flex-wrap'>
+                    <div className='flex items-center gap-2 flex-wrap sm:flex-nowrap sm:shrink-0'>
                       <span className={`text-sm px-3 py-1 rounded-full font-semibold capitalize ${statusColors[order.status]}`}>
                         {order.status}
                       </span>
@@ -558,7 +638,7 @@ const HomeAdmin = () => {
         )}
         {/* SETTINGS TAB */}
         {tab === 'settings' && (
-          <div className='max-w-lg'>
+          <div className='max-w-4xl'>
             <h2 className='text-xl font-bold mb-6'>Shipping Settings</h2>
 
             <div className='bg-white shadow-md rounded-xl p-6 flex flex-col gap-6'>
@@ -571,7 +651,11 @@ const HomeAdmin = () => {
                 </div>
                 <label className='relative inline-flex items-center cursor-pointer'>
                   <input type='checkbox' checked={shipping.freeShipping}
-                    onChange={e => setShipping(s => ({ ...s, freeShipping: e.target.checked }))}
+                    onChange={e => {
+                      const checked = e.target.checked
+                      if (checked && !window.confirm("Are you sure? This will remove shipping fees for ALL orders.")) return
+                      setShipping(s => ({ ...s, freeShipping: checked }))
+                    }}
                     className='sr-only peer' />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
                 </label>
@@ -593,10 +677,214 @@ const HomeAdmin = () => {
                 <span className='font-semibold'>Auto Free Shipping:</span> Orders with a subtotal of <span className='font-bold'>Rs. 10,000 or more</span> always get free shipping automatically — regardless of the settings above.
               </div>
 
+              {/* Global Sale */}
+              <div className='border-t border-gray-100 pt-4'>
+                <h3 className='font-bold text-gray-800 mb-3'>Global Sale</h3>
+                <div>
+                  <label className='text-sm font-semibold text-gray-600'>
+                    Sale Percentage (%) <span className='font-normal text-gray-400'>— 0 = no global sale</span>
+                  </label>
+                  <div className='relative mt-1'>
+                    <input
+                      type='number' min='0' max='100'
+                      value={shipping.globalSale ?? 0}
+                      onChange={e => setShipping(s => ({ ...s, globalSale: e.target.value }))}
+                      className='w-full border rounded-lg px-4 py-2 outline-none focus:border-orange-500 text-lg font-bold pr-8'
+                    />
+                    <span className='absolute right-3 top-2.5 text-gray-400 font-semibold'>%</span>
+                  </div>
+                  {Number(shipping.globalSale) > 0 ? (
+                    <p className='text-xs text-orange-600 mt-1 font-medium'>
+                      All products will show <span className='font-bold'>{shipping.globalSale}% OFF</span> — overrides individual product discounts.
+                    </p>
+                  ) : (
+                    <p className='text-xs text-gray-400 mt-1'>Set to 0 to disable global sale and use per-product discounts.</p>
+                  )}
+                </div>
+              </div>
+
               <button onClick={saveShipping} disabled={shippingLoading}
                 className='bg-green-700 text-white px-8 py-2 rounded-full font-semibold hover:bg-green-800 disabled:opacity-60 cursor-pointer w-fit'>
                 {shippingLoading ? 'Saving...' : 'Save Settings'}
               </button>
+            </div>
+
+            {/* Special Menu Picker */}
+            <div className='bg-white shadow-md rounded-xl p-6 mt-8'>
+              <div className='flex items-center justify-between mb-2'>
+                <div>
+                  <h2 className='text-xl font-bold text-gray-800'>Special Menu</h2>
+                  <p className='text-sm text-gray-400 mt-0.5'>Select up to 6 products to feature on the homepage.</p>
+                </div>
+                <span className={`text-sm font-bold px-3 py-1 rounded-full ${specialMenu.length === 6 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+                  {specialMenu.length} / 6 selected
+                </span>
+              </div>
+
+              <div className='relative mt-4 mb-3'>
+                <input
+                  type='text'
+                  placeholder='Search products by name or category...'
+                  value={specialMenuSearch}
+                  onChange={e => setSpecialMenuSearch(e.target.value)}
+                  className='w-full border border-gray-200 rounded-full px-5 py-2.5 pr-10 outline-none focus:border-green-500 text-sm'
+                />
+                {specialMenuSearch && (
+                  <button onClick={() => setSpecialMenuSearch('')}
+                    className='absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-lg leading-none'>×</button>
+                )}
+              </div>
+
+              <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3'>
+                {products.filter(p =>
+                  p.title.toLowerCase().includes(specialMenuSearch.toLowerCase()) ||
+                  p.category.toLowerCase().includes(specialMenuSearch.toLowerCase())
+                ).map(p => {
+                  const selected = specialMenu.includes(p._id)
+                  return (
+                    <div key={p._id}
+                      onClick={() => toggleSpecialMenu(p._id)}
+                      className={`relative cursor-pointer rounded-xl border-2 overflow-hidden transition-all ${selected ? 'border-green-600 shadow-md' : 'border-gray-200 hover:border-green-300 opacity-70 hover:opacity-100'}`}>
+                      <img src={p.images?.[0]} alt={p.title} className='w-full h-28 object-cover' />
+                      {selected && (
+                        <div className='absolute top-2 right-2 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center'>
+                          <svg className='w-3.5 h-3.5 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={3} d='M5 13l4 4L19 7' />
+                          </svg>
+                        </div>
+                      )}
+                      {selected && (
+                        <div className='absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full'>
+                          #{specialMenu.indexOf(p._id) + 1}
+                        </div>
+                      )}
+                      <div className='p-2 bg-white'>
+                        <p className='text-xs font-semibold text-gray-800 truncate'>{p.title}</p>
+                        <p className='text-xs text-gray-400 capitalize'>{p.category}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {products.length === 0 && (
+                <p className='text-gray-400 text-sm mt-4'>No products found. Add some products first.</p>
+              )}
+              {products.length > 0 && specialMenuSearch && products.filter(p =>
+                p.title.toLowerCase().includes(specialMenuSearch.toLowerCase()) ||
+                p.category.toLowerCase().includes(specialMenuSearch.toLowerCase())
+              ).length === 0 && (
+                <p className='text-gray-400 text-sm mt-2'>No products match "{specialMenuSearch}".</p>
+              )}
+
+              <button onClick={saveSpecialMenu} disabled={specialMenuLoading}
+                className='mt-5 bg-orange-500 text-white px-8 py-2 rounded-full font-semibold hover:bg-orange-600 disabled:opacity-60 cursor-pointer'>
+                {specialMenuLoading ? 'Saving...' : 'Save Special Menu'}
+              </button>
+            </div>
+
+            {/* Sale Banner */}
+            <div className='bg-white shadow-md rounded-xl p-6 mt-8'>
+              <div className='flex items-center justify-between mb-4'>
+                <div>
+                  <h2 className='text-xl font-bold text-gray-800'>Sale Banner</h2>
+                  <p className='text-sm text-gray-400 mt-0.5'>Show a sale poster on the homepage and a strip on all pages.</p>
+                </div>
+                <label className='relative inline-flex items-center cursor-pointer'>
+                  <input type='checkbox' checked={saleBanner.enabled}
+                    onChange={e => setSaleBanner(s => ({ ...s, enabled: e.target.checked }))}
+                    className='sr-only peer' />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-orange-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+              </div>
+
+              <div className='flex flex-col gap-4'>
+                <div>
+                  <label className='text-sm font-semibold text-gray-600'>Banner Title *</label>
+                  <input
+                    type='text'
+                    placeholder='e.g. 🎉 Eid Sale — Up to 50% OFF!'
+                    value={saleBanner.title}
+                    onChange={e => setSaleBanner(s => ({ ...s, title: e.target.value }))}
+                    className='w-full border rounded-lg px-4 py-2 mt-1 outline-none focus:border-orange-400 text-sm'
+                  />
+                </div>
+
+                <div>
+                  <label className='text-sm font-semibold text-gray-600'>Subtitle <span className='font-normal text-gray-400'>(optional)</span></label>
+                  <input
+                    type='text'
+                    placeholder='e.g. Limited time offer. Free shipping above Rs. 2000.'
+                    value={saleBanner.subtitle}
+                    onChange={e => setSaleBanner(s => ({ ...s, subtitle: e.target.value }))}
+                    className='w-full border rounded-lg px-4 py-2 mt-1 outline-none focus:border-orange-400 text-sm'
+                  />
+                </div>
+
+                <div>
+                  <label className='text-sm font-semibold text-gray-600 block mb-2'>Banner Color</label>
+                  <div className='flex gap-3 flex-wrap'>
+                    {[
+                      { value: 'green',  bg: 'bg-green-600',  label: 'Green' },
+                      { value: 'orange', bg: 'bg-orange-500', label: 'Orange' },
+                      { value: 'red',    bg: 'bg-red-600',    label: 'Red' },
+                      { value: 'purple', bg: 'bg-purple-600', label: 'Purple' },
+                      { value: 'blue',   bg: 'bg-blue-600',   label: 'Blue' },
+                      { value: 'gold',   bg: 'bg-yellow-400', label: 'Gold' },
+                    ].map(c => (
+                      <button key={c.value} type='button'
+                        onClick={() => setSaleBanner(s => ({ ...s, bgColor: c.value }))}
+                        className={`w-8 h-8 rounded-full ${c.bg} transition-transform ${saleBanner.bgColor === c.value ? 'scale-125 ring-2 ring-offset-2 ring-gray-400' : 'opacity-70 hover:opacity-100'}`}
+                        title={c.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Background Image Upload */}
+                <div className='border border-dashed border-gray-300 rounded-xl p-4'>
+                  <p className='text-sm font-semibold text-gray-600 mb-1'>Background Image <span className='font-normal text-gray-400'>(optional)</span></p>
+                  <p className='text-xs text-gray-400 mb-3'>Recommended size: <span className='font-semibold text-gray-600'>1920 × 1080 px</span> — full screen landscape, JPG/PNG/WebP, max 10 MB. The image will be darkened automatically so text stays readable.</p>
+                  <div className='flex flex-col sm:flex-row gap-3 items-start'>
+                    <label className={`flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer transition-colors ${bannerImgLoading ? 'opacity-60 pointer-events-none' : ''}`}>
+                      <FaCloudUploadAlt />
+                      {bannerImgLoading ? 'Uploading...' : 'Upload Image'}
+                      <input type='file' accept='image/*' className='hidden'
+                        onChange={e => uploadBannerImg(e.target.files[0])} />
+                    </label>
+                    {saleBanner.imageUrl && (
+                      <button type='button' onClick={() => setSaleBanner(s => ({ ...s, imageUrl: '' }))}
+                        className='text-xs text-red-500 hover:text-red-700 font-semibold underline self-center'>
+                        Remove Image
+                      </button>
+                    )}
+                  </div>
+                  {saleBanner.imageUrl && (
+                    <div className='mt-3 relative rounded-lg overflow-hidden h-24'>
+                      <img src={saleBanner.imageUrl} alt='banner preview' className='w-full h-full object-cover' />
+                      <div className='absolute inset-0 bg-black/40 flex items-center justify-center'>
+                        <span className='text-white text-xs font-semibold'>Preview</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Live Preview */}
+                {saleBanner.title && (
+                  <div className={`rounded-xl overflow-hidden text-center py-4 px-4 text-white text-sm font-semibold ${{
+                    green: 'bg-green-600', orange: 'bg-orange-500', red: 'bg-red-600',
+                    purple: 'bg-purple-600', blue: 'bg-blue-600', gold: 'bg-yellow-400 text-yellow-900'
+                  }[saleBanner.bgColor] || 'bg-green-600'}`}>
+                    <p className='font-bold'>{saleBanner.title}</p>
+                    {saleBanner.subtitle && <p className='text-xs opacity-80 mt-0.5'>{saleBanner.subtitle}</p>}
+                  </div>
+                )}
+
+                <button onClick={saveSaleBanner} disabled={saleBannerLoading}
+                  className='bg-orange-500 text-white px-8 py-2 rounded-full font-semibold hover:bg-orange-600 disabled:opacity-60 cursor-pointer w-fit'>
+                  {saleBannerLoading ? 'Saving...' : 'Save Banner'}
+                </button>
+              </div>
             </div>
           </div>
         )}

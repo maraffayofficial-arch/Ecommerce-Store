@@ -5,6 +5,7 @@ import { useCart } from '../context/CartProvider'
 import Logout from './Logout'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { FaShoppingCart, FaSearch } from 'react-icons/fa'
+import { useSettings } from '../context/SettingsProvider'
 
 const categories = [
   { label: 'All Products', value: '' },
@@ -18,7 +19,13 @@ const categories = [
 const Navbar = () => {
   const [authUser] = useAuth()
   const { cartCount } = useCart()
+  const { saleBanner } = useSettings()
   const navigate = useNavigate()
+
+  const stripBgMap = {
+    green: 'bg-green-600', orange: 'bg-orange-500', red: 'bg-red-600',
+    purple: 'bg-purple-600', blue: 'bg-blue-600', gold: 'bg-yellow-400 text-yellow-900',
+  }
 
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light")
   const [searchQuery, setSearchQuery] = useState('')
@@ -65,12 +72,28 @@ const Navbar = () => {
 
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light')
 
+  const bannerActive = saleBanner?.enabled && saleBanner?.title
+
   return (
-    <div className={`z-50 navbar fixed top-0 left-0 right-0 px-2 shadow-sm transition-all duration-300
+    <>
+    {bannerActive && (
+      <div className={`fixed top-0 left-0 right-0 z-[60] h-8 overflow-hidden flex items-center text-white text-xs sm:text-sm font-semibold ${stripBgMap[saleBanner.bgColor] || 'bg-green-600'}`}>
+        <span className='animate-marquee'>
+          {saleBanner.title}
+          {saleBanner.subtitle ? ` — ${saleBanner.subtitle}` : ''}
+          &nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp;
+          {saleBanner.title}
+          {saleBanner.subtitle ? ` — ${saleBanner.subtitle}` : ''}
+          &nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp;
+        </span>
+      </div>
+    )}
+    <div className={`z-50 navbar fixed left-0 right-0 px-2 shadow-sm transition-all duration-300
+      ${bannerActive ? 'top-8' : 'top-0'}
       ${sticky ? 'bg-base-200 shadow-md' : 'bg-base-100'}`}>
 
       {/* LEFT + CENTER (desktop nav sits right of logo inside navbar-start) */}
-      <div className="navbar-start flex items-center gap-1">
+      <div className="navbar-start flex items-center gap-1 min-w-0">
         {/* Mobile hamburger */}
         <div className="dropdown lg:hidden">
           <label tabIndex={0} className="btn btn-ghost btn-circle">
@@ -104,6 +127,11 @@ const Navbar = () => {
               </li>
             )}
             {authUser?.role === 'admin' && <li><Link to="/admin" className="text-orange-600 font-semibold">Admin Panel</Link></li>}
+            <li className='sm:hidden mt-1 border-t border-base-200 pt-1'>
+              {authUser ? <Logout /> : (
+                <button onClick={() => document.getElementById("my_modal_3").showModal()} className='font-semibold w-full text-left'>Login / Register</button>
+              )}
+            </li>
             <li className="mt-2">
               <div className="flex items-center border border-gray-300 rounded-lg px-2">
                 <input type="text" placeholder="Search pickles..."
@@ -116,12 +144,12 @@ const Navbar = () => {
         </div>
 
         {/* Logo */}
-        <Link to="/" className="text-green-700 font-bold text-xl ml-10 shrink-0">
+        <Link to="/" className="text-green-700 font-bold text-xl ml-1 lg:ml-8 shrink-0">
           Urban <span className="text-orange-500">Pickle</span>
         </Link>
 
         {/* Desktop nav links */}
-        <ul className="hidden lg:flex menu menu-horizontal px-0 gap-0 items-center text-sm ml-24">
+        <ul className="hidden lg:flex menu menu-horizontal px-0 gap-0 items-center text-sm ml-4 xl:ml-16">
           {[
             { to: '/', label: 'Home', end: true },
             { to: '/products', label: 'Products' },
@@ -176,7 +204,7 @@ const Navbar = () => {
       </div>
 
       {/* RIGHT */}
-      <div className="navbar-end flex gap-5 items-center pl-2 pr-24">
+      <div className="navbar-end flex gap-2 lg:gap-4 items-center pl-1 pr-2 sm:pr-4 lg:pr-16 shrink-0">
         {/* Desktop Search */}
         <div className="hidden lg:flex items-center border border-gray-300 rounded-full px-3 py-1.5 bg-base-100 gap-2">
           <input type="text" placeholder="Search..."
@@ -208,15 +236,21 @@ const Navbar = () => {
           )}
         </NavLink>
 
-        {/* Login / Logout */}
-        {authUser ? <Logout /> : (
-          <button className="btn btn-sm bg-black text-white border-none hover:bg-gray-800"
-            onClick={() => document.getElementById("my_modal_3").showModal()}>
-            <Login />
-          </button>
-        )}
+        {/* Dialog always in DOM so it works on mobile too */}
+        {!authUser && <Login noTrigger />}
+
+        {/* Visible trigger — hidden below sm, moves into hamburger dropdown */}
+        <div className="hidden sm:flex">
+          {authUser ? <Logout /> : (
+            <button className="btn btn-sm bg-black text-white border-none hover:bg-gray-800"
+              onClick={() => document.getElementById("my_modal_3").showModal()}>
+              Login
+            </button>
+          )}
+        </div>
       </div>
     </div>
+    </>
   )
 }
 

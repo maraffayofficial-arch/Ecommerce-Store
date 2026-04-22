@@ -47,60 +47,53 @@ const Signup = () => {
 
 
     return (
-        <div className='flex h-screen justify-center items-center'>
-            <div className=" p-5 shadow-[0_0_10px_black]">
+        <div className='min-h-screen flex items-center justify-center px-4 py-12 bg-base-200'>
+            <div className='w-full max-w-md bg-white rounded-2xl shadow-lg p-6 sm:p-8'>
+                <div className='relative'>
+                    <Link to="/" className='btn btn-sm btn-circle btn-ghost absolute right-0 top-0 text-black'>✕</Link>
+                    <h3 className='font-bold text-black text-2xl mb-6'>Create Account</h3>
 
-                <div method="dialog" className="  relative text-left ">
-                    <form onSubmit={handleSubmit(onSubmit)} >
-                        {/* if there is a button in form, it will close the modal */}
-                        <Link to="/" className="btn btn-sm btn-circle btn-ghost absolute text-black   right-2 top-2">✕</Link>
-                        <h3 className="font-bold text-black text-xl">Signup</h3>
-
-                        {/* name  */}
-                        <div className='flex flex-col  text-black mt-3'>
-                            <h3 className="text-lg">Username</h3>
-                            <input {...register("name", { required: true })} type="text" placeholder='Enter your fullname' className='border pl-2 pr-30 rounded outline-none  py-1 ' />
-                            {errors.name && <span className='text-red-600'>This field is required</span>}
-
-                        </div>
-                        {/* email  */}
-                        <div className='flex flex-col  text-black mt-3'>
-                            <h3 className="text-lg">Email</h3>
-                            <input {...register("email", { required: true })} type="text" placeholder='Enter your email' className='border pl-2 pr-30 rounded outline-none   py-1 ' />
-                            {errors.email && <span className='text-red-600'>This field is required</span>}
-
+                    <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
+                        <div className='flex flex-col text-black'>
+                            <label className='text-sm font-semibold mb-1'>Username</label>
+                            <input {...register("name", { required: true })} type="text"
+                                placeholder='Enter your full name'
+                                className='w-full border px-3 py-2 rounded outline-none focus:border-green-500' />
+                            {errors.name && <span className='text-red-600 text-sm mt-0.5'>This field is required</span>}
                         </div>
 
-                        {/*passrord */}
-                        <div className='flex flex-col text-black mt-3'>
-                            <h3 className="text-lg">Password</h3>
-                            <input {...register("password", { required: true })} type="text" placeholder='Enter password' className='border pl-2 rounded pr-30 outline-none  py-1 ' />
-                            {errors.password && <span className='text-red-600'>This field is required</span>}
-
+                        <div className='flex flex-col text-black'>
+                            <label className='text-sm font-semibold mb-1'>Email</label>
+                            <input {...register("email", { required: true })} type="email"
+                                placeholder='Enter your email'
+                                className='w-full border px-3 py-2 rounded outline-none focus:border-green-500' />
+                            {errors.email && <span className='text-red-600 text-sm mt-0.5'>This field is required</span>}
                         </div>
 
-                        {/* login button  */}
-                        <div className=' justify-between  flex  mt-8'>
-                            <button className='text-white cursor-pointer rounded bg-orange-600 px-4 py-1 hover:bg-orange-700 '>Signup</button>
-                            <p className="text-black">
-                                Already registered?
-                                <button
-                                    className="text-blue-500  underline"
+                        <div className='flex flex-col text-black'>
+                            <label className='text-sm font-semibold mb-1'>Password</label>
+                            <input {...register("password", { required: true })} type="password"
+                                placeholder='Enter password'
+                                className='w-full border px-3 py-2 rounded outline-none focus:border-green-500' />
+                            {errors.password && <span className='text-red-600 text-sm mt-0.5'>This field is required</span>}
+                        </div>
+
+                        <div className='flex items-center justify-between mt-2'>
+                            <button className='bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-2 rounded cursor-pointer'>
+                                Signup
+                            </button>
+                            <p className='text-black text-sm'>
+                                Already registered?{' '}
+                                <button type='button'
                                     onClick={() => document.getElementById("my_modal_3").showModal()}
-                                >
-                                    <Login><p className='text-blue-500 underline'>Login</p></Login>
+                                    className='text-blue-500 underline'>
+                                    Login
                                 </button>
-
                             </p>
-
-
                         </div>
-
-                    </form >
+                    </form>
                 </div>
             </div>
-
-
         </div>
     )
 }

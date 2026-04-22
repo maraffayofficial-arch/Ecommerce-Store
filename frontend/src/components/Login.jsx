@@ -4,7 +4,7 @@ import axios from "axios"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
 
-const Login = ({ children }) => {
+const Login = ({ children, noTrigger }) => {
   const { register, handleSubmit, formState: { errors } } = useForm()
 
   const onSubmit = async (data) => {
@@ -33,10 +33,12 @@ const Login = ({ children }) => {
 
   return (
     <div>
-      <a className="btn text-white font-bold bg-transparent border-none text-lg"
-        onClick={() => document.getElementById('my_modal_3').showModal()}>
-        {children || "Login"}
-      </a>
+      {!noTrigger && (
+        <a className="btn text-white font-bold bg-transparent border-none text-lg"
+          onClick={() => document.getElementById('my_modal_3').showModal()}>
+          {children || "Login"}
+        </a>
+      )}
 
       <dialog id="my_modal_3" className="modal">
         <div className="modal-box text-left">
@@ -51,7 +53,7 @@ const Login = ({ children }) => {
               <h3 className="text-lg">Email</h3>
               <input {...register("email", { required: true })} type="email"
                 placeholder='Enter your email'
-                className='border pl-2 pr-30 rounded outline-none md:pr-60 py-1 mr-5' />
+                className='w-full border px-3 rounded outline-none py-2 focus:border-green-500' />
               {errors.email && <span className='text-red-600'>This field is required</span>}
             </div>
 
@@ -59,7 +61,7 @@ const Login = ({ children }) => {
               <h3 className="text-lg">Password</h3>
               <input {...register("password", { required: true })} type="password"
                 placeholder='Enter password'
-                className='border pl-2 rounded pr-30 outline-none py-1 md:pr-60 mr-5' />
+                className='w-full border px-3 rounded outline-none py-2 focus:border-green-500' />
               {errors.password && <span className='text-red-600'>This field is required</span>}
             </div>
 

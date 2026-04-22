@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useCart } from '../context/CartProvider'
+import { useSettings } from '../context/SettingsProvider'
 import { FaStar } from 'react-icons/fa'
 import axios from 'axios'
 import toast from 'react-hot-toast'
@@ -11,6 +12,7 @@ import CardElements from '../components/CardElements'
 const ProductDetail = () => {
   const { id } = useParams()
   const { addToCart } = useCart()
+  const { globalSale } = useSettings()
   const navigate = useNavigate()
   const [product, setProduct] = useState(null)
   const [related, setRelated] = useState([])
@@ -52,11 +54,12 @@ const ProductDetail = () => {
   if (!product) return null
 
   const images = product.images || []
+  const discount = globalSale > 0 ? globalSale : (product.discount || 0)
 
   return (
     <>
       <Navbar />
-      <div className='min-h-screen pt-24 pb-12 px-4 sm:px-8 max-w-6xl mx-auto'>
+      <div className='min-h-screen pt-24 pb-12 px-3 sm:px-8 max-w-6xl mx-auto'>
 
         {/* Product Detail Card */}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-8 bg-base-100 shadow-lg rounded-2xl p-6 sm:p-10'>
@@ -69,9 +72,9 @@ const ProductDetail = () => {
                 alt={product.title}
                 className='w-full h-80 sm:h-96 object-cover'
               />
-              {product.discount > 0 && (
+              {discount > 0 && (
                 <span className='absolute top-3 left-3 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full'>
-                  {product.discount}% OFF
+                  {discount}% OFF
                 </span>
               )}
             </div>
@@ -96,13 +99,13 @@ const ProductDetail = () => {
               <span className='text-gray-400 text-sm ml-2'>(50+ reviews)</span>
             </p>
 
-            {product.discount > 0 ? (
+            {discount > 0 ? (
               <div className='flex items-center gap-3 flex-wrap'>
                 <p className='text-green-700 text-3xl font-bold'>
-                  Rs. {Math.round(product.price - (product.price * product.discount / 100))}
+                  Rs. {Math.round(product.price - (product.price * discount / 100))}
                 </p>
-                <p className='text-gray-400 text-xl line-through'>Rs. {product.price}</p>
-                <span className='bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full'>{product.discount}% OFF</span>
+                <p className='text-gray-400 text-xl line-through pr-[5px]'>Rs. {product.price}</p>
+                <span className='bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full'>{discount}% OFF</span>
               </div>
             ) : (
               <p className='text-green-700 text-3xl font-bold'>Rs. {product.price}</p>

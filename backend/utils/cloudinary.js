@@ -22,7 +22,21 @@ const storage = new CloudinaryStorage({
 
 export const upload = multer({
     storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max per file
+    limits: { fileSize: 5 * 1024 * 1024 },
+})
+
+const bannerStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: "urban-pickle/banners",
+        allowed_formats: ["jpg", "jpeg", "png", "webp"],
+        transformation: [{ width: 1920, height: 1080, crop: "fill", quality: "auto" }],
+    },
+})
+
+export const uploadBanner = multer({
+    storage: bannerStorage,
+    limits: { fileSize: 10 * 1024 * 1024 },
 })
 
 export { cloudinary }

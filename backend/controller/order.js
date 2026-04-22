@@ -4,11 +4,21 @@ import settingsModel from "../model/settings.js"
 
 const FREE_SHIPPING_THRESHOLD = 10000
 
-const calcShipping = async (subtotal) => {
+const getSettings = async () => {
     let s = await settingsModel.findOne()
-    if (!s) s = { shippingFee: 199, freeShipping: false }
+    if (!s) s = { shippingFee: 199, freeShipping: false, globalSale: 0 }
+    return s
+}
+
+const calcShipping = async (subtotal) => {
+    const s = await getSettings()
     if (s.freeShipping || subtotal >= FREE_SHIPPING_THRESHOLD) return 0
     return s.shippingFee
+}
+
+const applyGlobalSale = (price, globalSale) => {
+    if (!globalSale || globalSale <= 0) return price
+    return Math.round(price * (1 - globalSale / 100))
 }
 
 const placeOrder = async (req, res) => {
@@ -20,10 +30,13 @@ const placeOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: "Cart is empty" })
         }
 
+        const { globalSale } = await getSettings()
         const items = cart.items.map(i => ({
             productId: i.productId._id,
             title: i.productId.title,
-            price: i.productId.price,
+            price: globalSale > 0
+                ? applyGlobalSale(i.productId.price, globalSale)
+                : (i.productId.discount > 0 ? Math.round(i.productId.price * (1 - i.productId.discount / 100)) : i.productId.price),
             image: i.productId.images?.[0] || "",
             quantity: i.quantity
         }))

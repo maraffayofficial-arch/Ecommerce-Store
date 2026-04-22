@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useCart } from '../context/CartProvider'
 import { useAuth } from '../context/AuthProvider'
+import { useSettings } from '../context/SettingsProvider'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
@@ -57,14 +58,9 @@ const paymentMethods = [
 const Checkout = () => {
   const { cart, fetchCart, clearCart } = useCart()
   const [authUser] = useAuth()
+  const shippingSettings = useSettings()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
-  const [shippingSettings, setShippingSettings] = useState({ shippingFee: 199, freeShipping: false })
-
-  useEffect(() => {
-    axios.get("http://localhost:8000/settings/shipping")
-      .then(r => setShippingSettings(r.data)).catch(() => {})
-  }, [])
   const [paymentMethod, setPaymentMethod] = useState('cod')
   const [form, setForm] = useState({
     fullName: '', phone: '', altPhone: '', email: '', city: '', postalCode: '', street: '',
@@ -73,7 +69,12 @@ const Checkout = () => {
   const [newsletterOptIn, setNewsletterOptIn] = useState(false)
 
   const items = cart?.items || []
-  const subtotal = items.reduce((sum, i) => sum + i.productId.price * i.quantity, 0)
+  const { globalSale } = shippingSettings
+  const effectivePrice = (product) => {
+    const d = globalSale > 0 ? globalSale : (product.discount || 0)
+    return d > 0 ? Math.round(product.price * (1 - d / 100)) : product.price
+  }
+  const subtotal = items.reduce((sum, i) => sum + effectivePrice(i.productId) * i.quantity, 0)
   const shippingFee = (shippingSettings.freeShipping || subtotal >= FREE_THRESHOLD) ? 0 : shippingSettings.shippingFee
   const total = subtotal + shippingFee
 
@@ -109,7 +110,7 @@ const Checkout = () => {
         const guestItems = items.map(i => ({
           productId: i.productId._id,
           title: i.productId.title,
-          price: i.productId.price,
+          price: effectivePrice(i.productId),
           image: i.productId.images?.[0] || '',
           quantity: i.quantity,
         }))
@@ -167,7 +168,7 @@ const Checkout = () => {
                     <p className='text-xs text-gray-400'>Qty: {i.quantity}</p>
                   </div>
                 </div>
-                <p className='font-bold text-sm'>Rs. {i.productId.price * i.quantity}</p>
+                <p className='font-bold text-sm'>Rs. {effectivePrice(i.productId) * i.quantity}</p>
               </div>
             ))}
             <div className='mt-4 border-t border-base-200 pt-3 space-y-1'>

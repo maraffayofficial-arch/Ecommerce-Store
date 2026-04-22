@@ -3,7 +3,7 @@ import { cloudinary } from "../utils/cloudinary.js"
 
 const getProducts = async (req, res) => {
     try {
-        const products = await productModel.find()
+        const products = await productModel.find().sort({ _id: -1 })
         res.status(200).json(products)
     } catch (error) {
         res.status(500).json({ message: "Error getting products", error })

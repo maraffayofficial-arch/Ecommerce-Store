@@ -8,8 +8,8 @@ const SpecialMenu = () => {
     useEffect(() => {
         const getProduct = async () => {
             try {
-                const res = await axios.get("http://localhost:8000/product")
-                setProduct(res.data.slice(0, 6))
+                const res = await axios.get("http://localhost:8000/settings/special-menu")
+                setProduct(res.data)
             } catch (error) {
                 console.log(error)
             }
@@ -25,7 +25,7 @@ const SpecialMenu = () => {
                     Some of our best-selling pickles across Pakistan — crafted with love and tradition.
                 </p>
             </div>
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10 max-w-6xl mx-auto'>
                 {product.map((item) => (
                     <SpecialMenuCards item={item} key={item._id} />
                 ))}

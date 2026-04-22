@@ -1,27 +1,27 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useCart } from '../context/CartProvider'
 import { useAuth } from '../context/AuthProvider'
+import { useSettings } from '../context/SettingsProvider'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaTrash } from 'react-icons/fa'
-import axios from 'axios'
 
 const FREE_THRESHOLD = 10000
 
 const Cart = () => {
   const { cart, updateItem, removeItem, loading } = useCart()
-  const [shippingSettings, setShippingSettings] = useState({ shippingFee: 199, freeShipping: false })
-
-  useEffect(() => {
-    axios.get("http://localhost:8000/settings/shipping")
-      .then(r => setShippingSettings(r.data)).catch(() => {})
-  }, [])
+  const shippingSettings = useSettings()
   const [authUser] = useAuth()
   const navigate = useNavigate()
 
   const items = cart?.items || []
-  const subtotal = items.reduce((sum, i) => sum + i.productId.price * i.quantity, 0)
+  const { globalSale } = shippingSettings
+  const effectivePrice = (product) => {
+    const d = globalSale > 0 ? globalSale : (product.discount || 0)
+    return d > 0 ? Math.round(product.price * (1 - d / 100)) : product.price
+  }
+  const subtotal = items.reduce((sum, i) => sum + effectivePrice(i.productId) * i.quantity, 0)
   const shippingFee = (shippingSettings.freeShipping || subtotal >= FREE_THRESHOLD) ? 0 : shippingSettings.shippingFee
   const total = subtotal + shippingFee
 
@@ -70,7 +70,12 @@ const Cart = () => {
                 <img src={product.images?.[0]} alt={product.title} className='w-full sm:w-24 h-40 sm:h-24 object-cover rounded-lg' />
                 <div className='flex-1'>
                   <h2 className='font-bold text-lg'>{product.title}</h2>
-                  <p className='text-green-700 font-semibold'>Rs. {product.price}</p>
+                  <div className='flex items-center gap-2'>
+                    <p className='text-green-700 font-semibold'>Rs. {effectivePrice(product)}</p>
+                    {effectivePrice(product) < product.price && (
+                      <p className='text-xs text-gray-400 line-through'>Rs. {product.price}</p>
+                    )}
+                  </div>
                   <p className='text-sm text-gray-400'>{product.weight}</p>
                 </div>
                 <div className='flex items-center gap-2'>
@@ -80,7 +85,7 @@ const Cart = () => {
                   <button onClick={() => updateItem(product._id, item.quantity + 1)} disabled={loading}
                     className='w-8 h-8 rounded-full bg-base-200 hover:bg-base-300 font-bold flex items-center justify-center'>+</button>
                 </div>
-                <p className='font-bold text-right min-w-[80px]'>Rs. {product.price * item.quantity}</p>
+                <p className='font-bold text-right min-w-[80px]'>Rs. {effectivePrice(product) * item.quantity}</p>
                 <button onClick={() => removeItem(product._id)} className='text-red-500 hover:text-red-700'>
                   <FaTrash />
                 </button>
