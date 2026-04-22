@@ -30,6 +30,8 @@ const HomeAdmin = () => {
   const [saleBanner, setSaleBanner] = useState({ enabled: false, title: '', subtitle: '', bgColor: 'green', imageUrl: '' })
   const [saleBannerLoading, setSaleBannerLoading] = useState(false)
   const [bannerImgLoading, setBannerImgLoading] = useState(false)
+  const [contactInfo, setContactInfo] = useState({ email: '', phone: '', location: '' })
+  const [contactInfoLoading, setContactInfoLoading] = useState(false)
 
   // Image state
   const [selectedFiles, setSelectedFiles] = useState([])   // File objects for new upload
@@ -55,7 +57,17 @@ const HomeAdmin = () => {
       const res = await axios.get("http://localhost:8000/settings/shipping")
       setShipping(res.data)
       if (res.data.saleBanner) setSaleBanner({ enabled: false, title: '', subtitle: '', bgColor: 'green', imageUrl: '', ...res.data.saleBanner })
+      if (res.data.contactInfo) setContactInfo({ email: '', phone: '', location: '', ...res.data.contactInfo })
     } catch { }
+  }
+
+  const saveContactInfo = async () => {
+    setContactInfoLoading(true)
+    try {
+      await axios.put("http://localhost:8000/settings/shipping", { contactInfo }, authHeader)
+      toast.success("Contact info saved!")
+    } catch { toast.error("Failed to save contact info") }
+    finally { setContactInfoLoading(false) }
   }
 
   const saveSaleBanner = async () => {
@@ -885,6 +897,39 @@ const HomeAdmin = () => {
                   {saleBannerLoading ? 'Saving...' : 'Save Banner'}
                 </button>
               </div>
+            </div>
+
+            {/* Contact Info */}
+            <div className='bg-white shadow-md rounded-xl p-6 mt-8'>
+              <div className='mb-5'>
+                <h2 className='text-xl font-bold text-gray-800'>Contact Information</h2>
+                <p className='text-sm text-gray-400 mt-0.5'>These details appear on the Contact page and Footer across the site.</p>
+              </div>
+
+              <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4'>
+                {[
+                  { label: 'Email', key: 'email', placeholder: 'e.g. urbanpickle@gmail.com', type: 'email' },
+                  { label: 'Phone', key: 'phone', placeholder: 'e.g. +92 323-5073652', type: 'text' },
+                  { label: 'Location', key: 'location', placeholder: 'e.g. 26000, Multan, Pakistan', type: 'text' },
+                ].map(({ label, key, placeholder, type }) => (
+                  <div key={key}>
+                    <label className='text-sm font-semibold text-gray-500 block mb-1'>{label}</label>
+                    <p className='text-xs text-gray-400 mb-1'>Current: <span className='font-medium text-gray-600'>{contactInfo[key] || '—'}</span></p>
+                    <input
+                      type={type}
+                      value={contactInfo[key]}
+                      onChange={e => setContactInfo(c => ({ ...c, [key]: e.target.value }))}
+                      placeholder={placeholder}
+                      className='w-full border rounded-lg px-4 py-2 outline-none focus:border-green-500 text-sm'
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <button onClick={saveContactInfo} disabled={contactInfoLoading}
+                className='bg-green-700 text-white px-8 py-2 rounded-full font-semibold hover:bg-green-800 disabled:opacity-60 cursor-pointer w-fit'>
+                {contactInfoLoading ? 'Saving...' : 'Save Contact Info'}
+              </button>
             </div>
           </div>
         )}

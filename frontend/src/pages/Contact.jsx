@@ -1,12 +1,26 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
 import { useForm } from "react-hook-form"
+import axios from 'axios'
+import toast from 'react-hot-toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { useSettings } from '../context/SettingsProvider'
 
 const Contact = () => {
+    const { contactInfo } = useSettings()
     const { register, handleSubmit, formState: { errors }, reset } = useForm()
-    const onSubmit = (data) => { console.log(data); reset() }
+
+    const onSubmit = async (data) => {
+        try {
+            const res = await axios.post("http://localhost:8000/settings/contact", data)
+            if (res.data.success) {
+                toast.success("Message sent! We'll get back to you soon.")
+                reset()
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to send message.")
+        }
+    }
 
     return (
         <>
@@ -49,19 +63,19 @@ const Contact = () => {
                         </form>
                     </div>
 
-                    {/* Contact Info */}
+                    {/* Contact Info — dynamic from admin settings */}
                     <div className='mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center'>
                         <div className='bg-base-100 rounded-xl p-5 shadow-sm'>
                             <p className='font-bold mb-1'>Email</p>
-                            <p className='text-gray-500 text-sm'>urbanpickle@gmail.com</p>
+                            <p className='text-gray-500 text-sm'>{contactInfo?.email}</p>
                         </div>
                         <div className='bg-base-100 rounded-xl p-5 shadow-sm'>
                             <p className='font-bold mb-1'>Phone</p>
-                            <p className='text-gray-500 text-sm'>+92 323-5073652</p>
+                            <p className='text-gray-500 text-sm'>{contactInfo?.phone}</p>
                         </div>
                         <div className='bg-base-100 rounded-xl p-5 shadow-sm'>
                             <p className='font-bold mb-1'>Location</p>
-                            <p className='text-gray-500 text-sm'>26000, Multan, Pakistan</p>
+                            <p className='text-gray-500 text-sm'>{contactInfo?.location}</p>
                         </div>
                     </div>
                 </div>

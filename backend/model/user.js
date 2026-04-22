@@ -10,6 +10,8 @@ const userShema=mongoose.Schema({
     },
     role:{type:String, enum:["user","admin"], default:"user"
     },
+    resetOtp: { type: String, default: null },
+    resetOtpExpiry: { type: Date, default: null },
 })
 
 const userModel=mongoose.model("user_Collection",userShema)

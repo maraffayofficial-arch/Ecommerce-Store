@@ -12,6 +12,11 @@ const settingsSchema = mongoose.Schema({
         bgColor: { type: String, default: 'green' },
         imageUrl: { type: String, default: '' },
     },
+    contactInfo: {
+        email: { type: String, default: 'urbanpickle@gmail.com' },
+        phone: { type: String, default: '+92 323-5073652' },
+        location: { type: String, default: '26000, Multan, Pakistan' },
+    },
 }, { timestamps: true })
 
 const settingsModel = mongoose.model("settings_collection", settingsSchema)

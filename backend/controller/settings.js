@@ -1,4 +1,12 @@
 import settingsModel from "../model/settings.js"
+import nodemailer from "nodemailer"
+import dotenv from "dotenv"
+dotenv.config()
+
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+})
 
 const getOrCreate = async () => {
     let s = await settingsModel.findOne()
@@ -23,6 +31,7 @@ export const updateShippingSettings = async (req, res) => {
         if (freeShipping !== undefined) settings.freeShipping = Boolean(freeShipping)
         if (globalSale !== undefined) settings.globalSale = Number(globalSale)
         if (saleBanner !== undefined) { settings.saleBanner = saleBanner; settings.markModified('saleBanner') }
+        if (req.body.contactInfo !== undefined) { settings.contactInfo = req.body.contactInfo; settings.markModified('contactInfo') }
         await settings.save()
         res.json({ success: true, settings })
     } catch (error) {
@@ -51,6 +60,39 @@ export const getSpecialMenu = async (req, res) => {
         res.json(settings.specialMenu)
     } catch (error) {
         res.status(500).json({ message: "Error fetching special menu", error })
+    }
+}
+
+export const sendContactEmail = async (req, res) => {
+    try {
+        const { name, email, message } = req.body
+        if (!name || !email || !message)
+            return res.status(400).json({ success: false, message: "All fields are required." })
+
+        const settings = await getOrCreate()
+        const adminEmail = settings.contactInfo?.email || process.env.EMAIL_USER
+
+        await transporter.sendMail({
+            from: `"Urban Pickle Contact" <${process.env.EMAIL_USER}>`,
+            to: adminEmail,
+            replyTo: email,
+            subject: `New Message from ${name} — Urban Pickle`,
+            html: `
+                <div style="font-family:sans-serif;max-width:520px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:12px;">
+                    <h2 style="color:#15803d;">Urban <span style="color:#ea580c;">Pickle</span> — Contact Form</h2>
+                    <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0;" />
+                    <p><strong>Name:</strong> ${name}</p>
+                    <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+                    <p><strong>Message:</strong></p>
+                    <div style="background:#f9fafb;padding:16px;border-radius:8px;color:#374151;white-space:pre-wrap;">${message}</div>
+                    <p style="color:#9ca3af;font-size:12px;margin-top:20px;">Reply directly to this email to respond to the customer.</p>
+                </div>
+            `,
+        })
+
+        return res.status(200).json({ success: true, message: "Message sent successfully!" })
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Failed to send message.", error })
     }
 }
 

@@ -6,7 +6,6 @@ import Cards from '../components/cards'
 import SpecialMenu from '../components/SpecialMenu'
 import Whyus from '../components/Whyus'
 import SaleBannerPoster from '../components/SaleBannerPoster'
-
 const Home = () => {
   return (
     <>

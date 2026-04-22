@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import axios from 'axios'
 
-const defaultSettings = { shippingFee: 199, freeShipping: false, globalSale: 0, saleBanner: { enabled: false, title: '', subtitle: '', bgColor: 'green' } }
+const defaultSettings = { shippingFee: 199, freeShipping: false, globalSale: 0, saleBanner: { enabled: false, title: '', subtitle: '', bgColor: 'green' }, contactInfo: { email: 'urbanpickle@gmail.com', phone: '+92 323-5073652', location: '26000, Multan, Pakistan' } }
 
 const SettingsContext = createContext(defaultSettings)
 

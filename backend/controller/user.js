@@ -1,6 +1,7 @@
 import userModel from "../model/user.js"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
+import { sendOtpEmail } from "../utils/mailer.js"
 
 const generateToken = (user) => {
     return jwt.sign(
@@ -50,8 +51,22 @@ const userLogin = async (req, res) => {
             return res.status(401).json({ success: false, message: "Incorrect password" })
         }
 
-        const token = generateToken(user)
+        // Admin requires OTP step
+        if (user.role === 'admin') {
+            const otp = Math.floor(100000 + Math.random() * 900000).toString()
+            user.resetOtp = otp
+            user.resetOtpExpiry = new Date(Date.now() + 10 * 60 * 1000)
+            await user.save()
+            await sendOtpEmail(user.email, otp)
+            return res.status(200).json({
+                success: true,
+                requiresOtp: true,
+                email: user.email,
+                message: "OTP sent to admin email."
+            })
+        }
 
+        const token = generateToken(user)
         return res.status(200).json({
             success: true,
             message: "Logged in!",
@@ -63,4 +78,93 @@ const userLogin = async (req, res) => {
     }
 }
 
-export { userSignup, userLogin }
+const verifyAdminOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body
+        const user = await userModel.findOne({ email })
+
+        if (!user || user.role !== 'admin')
+            return res.status(404).json({ success: false, message: "Admin not found." })
+
+        if (!user.resetOtp || user.resetOtp !== otp)
+            return res.status(400).json({ success: false, message: "Invalid OTP." })
+
+        if (user.resetOtpExpiry < new Date())
+            return res.status(400).json({ success: false, message: "OTP expired. Please login again." })
+
+        user.resetOtp = null
+        user.resetOtpExpiry = null
+        await user.save()
+
+        const token = generateToken(user)
+        return res.status(200).json({
+            success: true,
+            message: "Admin verified!",
+            token,
+            user: { _id: user._id, email: user.email, name: user.name, role: user.role }
+        })
+    } catch (error) {
+        res.status(500).json({ message: "Error in verifyAdminOtp Controller", error })
+    }
+}
+
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body
+        const user = await userModel.findOne({ email })
+        if (!user) return res.status(404).json({ success: false, message: "No account found with this email." })
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString()
+        user.resetOtp = otp
+        user.resetOtpExpiry = new Date(Date.now() + 10 * 60 * 1000)
+        await user.save()
+
+        await sendOtpEmail(email, otp)
+        return res.status(200).json({ success: true, message: "OTP sent to your email." })
+    } catch (error) {
+        res.status(500).json({ message: "Error sending OTP", error })
+    }
+}
+
+const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body
+        const user = await userModel.findOne({ email })
+        if (!user) return res.status(404).json({ success: false, message: "User not found." })
+
+        if (!user.resetOtp || user.resetOtp !== otp)
+            return res.status(400).json({ success: false, message: "Invalid OTP." })
+
+        if (user.resetOtpExpiry < new Date())
+            return res.status(400).json({ success: false, message: "OTP has expired. Please request a new one." })
+
+        user.password = await bcrypt.hash(newPassword, 10)
+        user.resetOtp = null
+        user.resetOtpExpiry = null
+        await user.save()
+
+        return res.status(200).json({ success: true, message: "Password reset successfully." })
+    } catch (error) {
+        res.status(500).json({ message: "Error resetting password", error })
+    }
+}
+
+const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body
+        const user = await userModel.findById(req.user._id)
+        if (!user) return res.status(404).json({ success: false, message: "User not found." })
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password)
+        if (!isMatch) return res.status(401).json({ success: false, message: "Current password is incorrect." })
+
+        user.password = await bcrypt.hash(newPassword, 10)
+        await user.save()
+
+        return res.status(200).json({ success: true, message: "Password changed successfully." })
+    } catch (error) {
+        res.status(500).json({ message: "Error changing password", error })
+    }
+}
+
+export { userSignup, userLogin, verifyAdminOtp, forgotPassword, resetPassword, changePassword }

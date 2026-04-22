@@ -1,7 +1,30 @@
-import React from 'react'
+import React, { useState } from 'react'
 import bannerImage from "../assets/acahr_front_img.png"
+import axios from 'axios'
+import toast from 'react-hot-toast'
 
 const Banner = () => {
+    const [email, setEmail] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [subscribed, setSubscribed] = useState(false)
+
+    const handleSubscribe = async () => {
+        if (!email.trim()) return toast.error("Please enter your email.")
+        setLoading(true)
+        try {
+            const res = await axios.post("http://localhost:8000/subscribe", { email })
+            if (res.data.success) {
+                toast.success(res.data.message)
+                setSubscribed(true)
+                setEmail('')
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Subscription failed.")
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <div className='flex flex-col-reverse sm:flex-row items-center w-full pt-20 pb-10 px-6 sm:px-12 lg:px-24 gap-8 min-h-[90vh]'>
 
@@ -15,16 +38,29 @@ const Banner = () => {
                     Handcrafted achaar made with traditional recipes, bold spices, and the finest local ingredients. Bringing the real taste of Pakistan to your table.
                 </p>
 
-                <div className='mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto sm:mx-0'>
-                    <input
-                        type="email"
-                        placeholder='Enter your email for updates'
-                        className='flex-1 border border-gray-300 rounded-full px-4 py-2 outline-none focus:border-green-500'
-                    />
-                    <button className='bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded-full cursor-pointer transition-colors'>
-                        Subscribe
-                    </button>
-                </div>
+                {subscribed ? (
+                    <div className='mt-8 bg-green-50 border border-green-300 text-green-700 font-semibold rounded-full px-6 py-3 inline-block text-sm'>
+                        🎉 You're subscribed! Check your inbox.
+                    </div>
+                ) : (
+                    <div className='mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto sm:mx-0'>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleSubscribe()}
+                            placeholder='Enter your email for updates'
+                            className='flex-1 border border-gray-300 rounded-full px-4 py-2 outline-none focus:border-green-500'
+                        />
+                        <button
+                            onClick={handleSubscribe}
+                            disabled={loading}
+                            className='bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-bold px-6 py-2 rounded-full cursor-pointer transition-colors'
+                        >
+                            {loading ? "..." : "Subscribe"}
+                        </button>
+                    </div>
+                )}
 
                 <div className='mt-8 flex gap-4 justify-center sm:justify-start'>
                     <a href="/products">

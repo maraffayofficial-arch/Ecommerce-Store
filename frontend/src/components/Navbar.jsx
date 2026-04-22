@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Login from './Login'
 import { useAuth } from '../context/AuthProvider'
 import { useCart } from '../context/CartProvider'
-import Logout from './Logout'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { FaShoppingCart, FaSearch } from 'react-icons/fa'
+import { FaShoppingCart, FaSearch, FaUserCircle, FaBoxOpen, FaLock, FaSignInAlt, FaSignOutAlt, FaUserCog } from 'react-icons/fa'
 import { useSettings } from '../context/SettingsProvider'
+import toast from 'react-hot-toast'
 
 const categories = [
   { label: 'All Products', value: '' },
@@ -17,10 +17,11 @@ const categories = [
 ]
 
 const Navbar = () => {
-  const [authUser] = useAuth()
+  const [authUser, setAuthUser] = useAuth()
   const { cartCount } = useCart()
   const { saleBanner } = useSettings()
   const navigate = useNavigate()
+  const profileRef = useRef(null)
 
   const stripBgMap = {
     green: 'bg-green-600', orange: 'bg-orange-500', red: 'bg-red-600',
@@ -31,6 +32,7 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [sticky, setSticky] = useState(false)
   const [hasNewOrder, setHasNewOrder] = useState(!!localStorage.getItem("hasNewOrder"))
+  const [profileOpen, setProfileOpen] = useState(false)
 
   useEffect(() => {
     const handler = () => setHasNewOrder(!!localStorage.getItem("hasNewOrder"))
@@ -58,6 +60,17 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
   const handleSearch = (e) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
       navigate(`/products?q=${encodeURIComponent(searchQuery.trim())}`)
@@ -68,6 +81,16 @@ const Navbar = () => {
   const handleCategoryClick = (value) => {
     if (value) navigate(`/products?category=${value}`)
     else navigate('/products')
+  }
+
+  const handleLogout = () => {
+    setProfileOpen(false)
+    setAuthUser({ ...authUser, user: null })
+    toast.success("Logged out")
+    setTimeout(() => {
+      localStorage.removeItem("user")
+      window.location.reload()
+    }, 1500)
   }
 
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light')
@@ -92,7 +115,7 @@ const Navbar = () => {
       ${bannerActive ? 'top-8' : 'top-0'}
       ${sticky ? 'bg-base-200 shadow-md' : 'bg-base-100'}`}>
 
-      {/* LEFT + CENTER (desktop nav sits right of logo inside navbar-start) */}
+      {/* LEFT */}
       <div className="navbar-start flex items-center gap-1 min-w-0">
         {/* Mobile hamburger */}
         <div className="dropdown lg:hidden">
@@ -118,20 +141,6 @@ const Navbar = () => {
             </li>
             <li><Link to="/about">About Us</Link></li>
             <li><Link to="/contact">Contact</Link></li>
-            {authUser && (
-              <li>
-                <Link to="/orders" className="relative flex items-center gap-2">
-                  My Orders
-                  {hasNewOrder && <span className="w-2 h-2 rounded-full bg-orange-500 inline-block"></span>}
-                </Link>
-              </li>
-            )}
-            {authUser?.role === 'admin' && <li><Link to="/admin" className="text-orange-600 font-semibold">Admin Panel</Link></li>}
-            <li className='sm:hidden mt-1 border-t border-base-200 pt-1'>
-              {authUser ? <Logout /> : (
-                <button onClick={() => document.getElementById("my_modal_3").showModal()} className='font-semibold w-full text-left'>Login / Register</button>
-              )}
-            </li>
             <li className="mt-2">
               <div className="flex items-center border border-gray-300 rounded-lg px-2">
                 <input type="text" placeholder="Search pickles..."
@@ -179,17 +188,6 @@ const Navbar = () => {
               </ul>
             </details>
           </li>
-          {authUser && (
-            <li>
-              <NavLink to="/orders"
-                className={({ isActive }) =>
-                  `relative flex items-center gap-1 ${isActive ? 'text-orange-500 font-semibold border-b-2 border-orange-500 rounded-none' : ''}`
-                }>
-                My Orders
-                {hasNewOrder && <span className="w-2 h-2 rounded-full bg-orange-500 inline-block ml-1"></span>}
-              </NavLink>
-            </li>
-          )}
           {authUser?.role === 'admin' && (
             <li>
               <NavLink to="/admin"
@@ -204,7 +202,7 @@ const Navbar = () => {
       </div>
 
       {/* RIGHT */}
-      <div className="navbar-end flex gap-2 lg:gap-4 items-center pl-1 pr-2 sm:pr-4 lg:pr-16 shrink-0">
+      <div className="navbar-end flex gap-4 lg:gap-6 items-center pl-1 pr-2 sm:pr-4 lg:pr-16 shrink-0">
         {/* Desktop Search */}
         <div className="hidden lg:flex items-center border border-gray-300 rounded-full px-3 py-1.5 bg-base-100 gap-2">
           <input type="text" placeholder="Search..."
@@ -226,8 +224,8 @@ const Navbar = () => {
           </svg>
         </label>
 
-        {/* Cart — visible to all users */}
-        <NavLink to="/cart" className={({ isActive }) => `relative ${isActive ? 'text-orange-500' : ''}`}>
+        {/* Cart */}
+        <NavLink to="/cart" className={({ isActive }) => `relative cursor-pointer hover:text-orange-500 transition-colors ${isActive ? 'text-orange-500' : ''}`}>
           <FaShoppingCart className="h-6 w-6" />
           {cartCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
@@ -236,16 +234,119 @@ const Navbar = () => {
           )}
         </NavLink>
 
-        {/* Dialog always in DOM so it works on mobile too */}
+        {/* Login dialog always in DOM */}
         {!authUser && <Login noTrigger />}
 
-        {/* Visible trigger — hidden below sm, moves into hamburger dropdown */}
+        {/* Login / Logout button */}
         <div className="hidden sm:flex">
-          {authUser ? <Logout /> : (
-            <button className="btn btn-sm bg-black text-white border-none hover:bg-gray-800"
-              onClick={() => document.getElementById("my_modal_3").showModal()}>
+          {authUser ? (
+            <button
+              onClick={handleLogout}
+              className="btn btn-sm bg-red-500 text-white border-none hover:bg-red-600"
+            >
+              Logout
+            </button>
+          ) : (
+            <button
+              className="btn btn-sm bg-black text-white border-none hover:bg-gray-800"
+              onClick={() => document.getElementById('my_modal_3').showModal()}
+            >
               Login
             </button>
+          )}
+        </div>
+
+        {/* Profile Icon + Dropdown */}
+        <div className="relative" ref={profileRef}>
+          <button
+            onClick={() => setProfileOpen(o => !o)}
+            className="relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-orange-50 transition-colors group/profile cursor-pointer"
+            aria-label="Profile menu"
+          >
+            <FaUserCircle className="h-7 w-7 text-gray-600 group-hover/profile:text-orange-500 transition-colors" />
+            {/* Red dot if new order */}
+            {hasNewOrder && authUser && (
+              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-orange-500 rounded-full border-2 border-base-100" />
+            )}
+          </button>
+
+          {profileOpen && (
+            <div className="absolute right-0 top-full mt-2 w-60 bg-base-100 shadow-2xl rounded-2xl overflow-hidden z-[70] border border-base-200">
+
+              {/* User info header */}
+              {authUser ? (
+                <div className="px-4 py-3 bg-green-700 text-white">
+                  <p className="font-bold text-sm truncate">{authUser.name}</p>
+                  <p className="text-xs opacity-80 truncate">{authUser.email}</p>
+                </div>
+              ) : (
+                <div className="px-4 py-3 bg-gray-800 text-white">
+                  <p className="font-semibold text-sm">Welcome!</p>
+                  <p className="text-xs opacity-70">Sign in to your account</p>
+                </div>
+              )}
+
+              <div className="p-2 flex flex-col gap-0.5">
+                {authUser && (
+                  <>
+                    {/* My Orders */}
+                    <Link
+                      to="/orders"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-base-200 transition-colors text-sm font-medium"
+                    >
+                      <FaBoxOpen className="text-green-700 shrink-0" />
+                      <span>My Orders</span>
+                      {hasNewOrder && (
+                        <span className="ml-auto w-2 h-2 rounded-full bg-orange-500" />
+                      )}
+                    </Link>
+
+                    {/* Change Password */}
+                    <Link
+                      to="/change-password"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-base-200 transition-colors text-sm font-medium"
+                    >
+                      <FaLock className="text-green-700 shrink-0" />
+                      <span>Change Password</span>
+                    </Link>
+
+                    {/* Admin Panel */}
+                    {authUser.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-base-200 transition-colors text-sm font-medium text-orange-600"
+                      >
+                        <FaUserCog className="shrink-0" />
+                        <span>Admin Panel</span>
+                      </Link>
+                    )}
+                  </>
+                )}
+
+                <div className="border-t border-base-200 mt-1 pt-1">
+                  {authUser ? (
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 text-red-500 transition-colors text-sm font-medium w-full text-left"
+                    >
+                      <FaSignOutAlt className="shrink-0" />
+                      <span>Logout</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => { setProfileOpen(false); document.getElementById('my_modal_3').showModal() }}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-base-200 transition-colors text-sm font-medium w-full text-left"
+                    >
+                      <FaSignInAlt className="text-green-700 shrink-0" />
+                      <span>Login / Register</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>

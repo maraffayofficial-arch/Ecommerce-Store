@@ -216,19 +216,24 @@ const Cards = () => {
   }, [])
 
   const reversed = [...product].reverse()
+  const mid = Math.floor(product.length / 2)
+  const middleFirst = [...product.slice(mid), ...product.slice(0, mid)]
 
   return (
-    <section className="py-12 px-2 sm:px-10 overflow-hidden">
-      <div className="text-center max-w-2xl mx-auto mb-10">
-        <h1 className="font-extrabold text-4xl sm:text-5xl mb-3">Latest Offers</h1>
-        <p className="text-gray-500 text-lg">
-          Once a month we have a sale — these are our highest discounted products right now.
-        </p>
-      </div>
+    <>
+      {/* Latest Offers heading — standalone */}
+      <section className="py-12 px-2 sm:px-10">
+        <div className="text-center max-w-2xl mx-auto">
+          <h1 className="font-extrabold text-4xl sm:text-5xl mb-3">Latest Offers</h1>
+          <p className="text-gray-500 text-lg">
+            Once a month we have a sale — these are our highest discounted products right now.
+          </p>
+        </div>
+      </section>
 
+      {/* Independent Carousels */}
       {loading ? (
-        /* Loading Skeleton */
-        <div className="flex gap-4 px-1">
+        <div className="flex gap-4 px-4 overflow-hidden">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="shrink-0 w-[85%] min-[480px]:w-[46%] md:w-[31%] lg:w-[23.5%]">
               <div className="bg-base-200 animate-pulse rounded-lg h-[420px]" />
@@ -237,20 +242,22 @@ const Cards = () => {
         </div>
       ) : product.length > 0 ? (
         <>
-          {/* Carousel 1 */}
-          <div className="mx-1 sm:mx-4">
-            <Carousel items={product} id="carousel-1" />
+          <div className="px-4 sm:px-14 pt-3">
+            <Carousel items={reversed} id="carousel-1" />
           </div>
 
-          {/* Carousel 2 */}
-          <div className="mx-1 sm:mx-4 mt-10">
-            <Carousel items={reversed} id="carousel-2" />
+          <div className="px-4 sm:px-14 mt-20 pt-3">
+            <Carousel items={middleFirst} id="carousel-2" />
+          </div>
+
+          <div className="px-4 sm:px-14 mt-20 pt-3 pb-12">
+            <Carousel items={product} id="carousel-3" />
           </div>
         </>
       ) : (
-        <p className="text-center text-gray-400">No products found.</p>
+        <p className="text-center text-gray-400 py-10">No products found.</p>
       )}
-    </section>
+    </>
   )
 }
 

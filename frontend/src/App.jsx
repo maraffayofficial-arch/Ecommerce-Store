@@ -10,6 +10,9 @@ import Checkout from './pages/Checkout'
 import Orders from './pages/Orders'
 import ProductDetail from './pages/ProductDetail'
 import About from './pages/About'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
+import ChangePassword from './pages/ChangePassword'
 import { Toaster } from "react-hot-toast"
 import { useAuth } from './context/AuthProvider'
 
@@ -34,6 +37,9 @@ function App() {
           <Route path='/cart' element={<Cart />} />
           <Route path='/checkout' element={<Checkout />} />
           <Route path='/orders' element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+          <Route path='/change-password' element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+          <Route path='/forgot-password' element={<ForgotPassword />} />
+          <Route path='/reset-password' element={<ResetPassword />} />
           <Route path='/admin' element={<ProtectedRoute adminOnly><HomeAdmin /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>

@@ -7,6 +7,7 @@ import userRouter from './routes/user.js'
 import cartRouter from './routes/cart.js'
 import orderRouter from './routes/order.js'
 import settingsRouter from './routes/settings.js'
+import subscriberRouter from './routes/subscriber.js'
 
 const app = express()
 
@@ -23,6 +24,7 @@ app.use("/user", userRouter)
 app.use("/cart", cartRouter)
 app.use("/order", orderRouter)
 app.use("/settings", settingsRouter)
+app.use("/subscribe", subscriberRouter)
 
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT}`)
