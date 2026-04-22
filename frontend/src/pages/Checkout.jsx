@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { FaMoneyBillWave, FaUniversity, FaMobileAlt } from 'react-icons/fa'
 
-const SHIPPING_FEE = 199
+const FREE_THRESHOLD = 10000
 
 // ── Update these with your real account details ───────────────────────────────
 const PAYMENT_INFO = {
@@ -59,6 +59,12 @@ const Checkout = () => {
   const [authUser] = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [shippingSettings, setShippingSettings] = useState({ shippingFee: 199, freeShipping: false })
+
+  useEffect(() => {
+    axios.get("http://localhost:8000/settings/shipping")
+      .then(r => setShippingSettings(r.data)).catch(() => {})
+  }, [])
   const [paymentMethod, setPaymentMethod] = useState('cod')
   const [form, setForm] = useState({
     fullName: '', phone: '', altPhone: '', email: '', city: '', postalCode: '', street: '',
@@ -68,7 +74,8 @@ const Checkout = () => {
 
   const items = cart?.items || []
   const subtotal = items.reduce((sum, i) => sum + i.productId.price * i.quantity, 0)
-  const total = subtotal + SHIPPING_FEE
+  const shippingFee = (shippingSettings.freeShipping || subtotal >= FREE_THRESHOLD) ? 0 : shippingSettings.shippingFee
+  const total = subtotal + shippingFee
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -168,7 +175,10 @@ const Checkout = () => {
                 <span>Subtotal</span><span>Rs. {subtotal}</span>
               </div>
               <div className='flex justify-between text-sm text-gray-500'>
-                <span>Shipping</span><span>Rs. {SHIPPING_FEE}</span>
+                <span>Shipping</span>
+                {shippingFee === 0
+                  ? <span className='text-green-600 font-semibold'>Free 🎉</span>
+                  : <span>Rs. {shippingFee}</span>}
               </div>
               <div className='flex justify-between text-xl font-bold pt-2 border-t border-base-200'>
                 <span>Total</span>
@@ -297,7 +307,7 @@ const Checkout = () => {
 
             <button type='submit' disabled={loading || items.length === 0}
               className='mt-1 bg-orange-500 text-white py-3 rounded-full font-bold text-lg hover:bg-orange-600 cursor-pointer disabled:opacity-60 transition-colors'>
-              {loading ? "Placing Order..." : `Place Order — Rs. ${total}`}
+              {loading ? "Placing Order..." : `Place Order — Rs. ${total}${shippingFee === 0 ? ' (Free Shipping!)' : ''}`}
             </button>
           </form>
 

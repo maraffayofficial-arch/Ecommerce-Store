@@ -1,21 +1,29 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useCart } from '../context/CartProvider'
 import { useAuth } from '../context/AuthProvider'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaTrash } from 'react-icons/fa'
+import axios from 'axios'
 
-const SHIPPING_FEE = 199
+const FREE_THRESHOLD = 10000
 
 const Cart = () => {
   const { cart, updateItem, removeItem, loading } = useCart()
+  const [shippingSettings, setShippingSettings] = useState({ shippingFee: 199, freeShipping: false })
+
+  useEffect(() => {
+    axios.get("http://localhost:8000/settings/shipping")
+      .then(r => setShippingSettings(r.data)).catch(() => {})
+  }, [])
   const [authUser] = useAuth()
   const navigate = useNavigate()
 
   const items = cart?.items || []
   const subtotal = items.reduce((sum, i) => sum + i.productId.price * i.quantity, 0)
-  const total = subtotal + SHIPPING_FEE
+  const shippingFee = (shippingSettings.freeShipping || subtotal >= FREE_THRESHOLD) ? 0 : shippingSettings.shippingFee
+  const total = subtotal + shippingFee
 
   if (items.length === 0) {
     return (
@@ -88,8 +96,15 @@ const Cart = () => {
           </div>
           <div className='flex justify-between text-base text-gray-600 mb-3 pb-3 border-b border-base-200'>
             <span>Shipping</span>
-            <span>Rs. {SHIPPING_FEE}</span>
+            {shippingFee === 0
+              ? <span className='text-green-600 font-semibold'>Free 🎉</span>
+              : <span>Rs. {shippingFee}</span>}
           </div>
+          {subtotal > 0 && subtotal < FREE_THRESHOLD && !shippingSettings.freeShipping && (
+            <p className='text-xs text-gray-400 mb-3'>
+              Add <span className='font-semibold text-green-700'>Rs. {FREE_THRESHOLD - subtotal}</span> more to get free shipping!
+            </p>
+          )}
           <div className='flex justify-between text-xl font-bold mb-5'>
             <span>Total</span>
             <span className='text-green-700'>Rs. {total}</span>

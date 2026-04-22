@@ -21,6 +21,8 @@ const HomeAdmin = () => {
   const [editId, setEditId] = useState(null)
   const [tab, setTab] = useState('products')
   const [loading, setLoading] = useState(false)
+  const [shipping, setShipping] = useState({ shippingFee: 199, freeShipping: false })
+  const [shippingLoading, setShippingLoading] = useState(false)
 
   // Image state
   const [selectedFiles, setSelectedFiles] = useState([])   // File objects for new upload
@@ -37,7 +39,24 @@ const HomeAdmin = () => {
     }
     fetchProducts()
     fetchOrders()
+    fetchShipping()
   }, [authUser])
+
+  const fetchShipping = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/settings/shipping")
+      setShipping(res.data)
+    } catch { }
+  }
+
+  const saveShipping = async () => {
+    setShippingLoading(true)
+    try {
+      await axios.put("http://localhost:8000/settings/shipping", shipping, authHeader)
+      toast.success("Shipping settings saved!")
+    } catch { toast.error("Failed to save settings") }
+    finally { setShippingLoading(false) }
+  }
 
   const fetchProducts = async () => {
     try {
@@ -260,6 +279,10 @@ const HomeAdmin = () => {
               {unseenCount}
             </span>
           )}
+        </button>
+        <button onClick={() => setTab('settings')}
+          className={`py-3 px-6 font-semibold border-b-2 transition-all ${tab === 'settings' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500'}`}>
+          Settings
         </button>
       </div>
 
@@ -508,6 +531,51 @@ const HomeAdmin = () => {
             </div>
           </>
         )}
+        {/* SETTINGS TAB */}
+        {tab === 'settings' && (
+          <div className='max-w-lg'>
+            <h2 className='text-xl font-bold mb-6'>Shipping Settings</h2>
+
+            <div className='bg-white shadow-md rounded-xl p-6 flex flex-col gap-6'>
+
+              {/* Free shipping toggle */}
+              <div className='flex items-center justify-between'>
+                <div>
+                  <p className='font-semibold text-gray-800'>Make Delivery Free</p>
+                  <p className='text-sm text-gray-400'>Override — all orders get free shipping regardless of amount</p>
+                </div>
+                <label className='relative inline-flex items-center cursor-pointer'>
+                  <input type='checkbox' checked={shipping.freeShipping}
+                    onChange={e => setShipping(s => ({ ...s, freeShipping: e.target.checked }))}
+                    className='sr-only peer' />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+              </div>
+
+              {/* Shipping fee input */}
+              <div className={shipping.freeShipping ? 'opacity-40 pointer-events-none' : ''}>
+                <label className='text-sm font-semibold text-gray-600'>Shipping Fee (Rs.)</label>
+                <input
+                  type='number' min='0'
+                  value={shipping.shippingFee}
+                  onChange={e => setShipping(s => ({ ...s, shippingFee: e.target.value }))}
+                  className='w-full border rounded-lg px-4 py-2 mt-1 outline-none focus:border-green-500 text-lg font-bold'
+                />
+              </div>
+
+              {/* Auto free shipping note */}
+              <div className='bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800'>
+                <span className='font-semibold'>Auto Free Shipping:</span> Orders with a subtotal of <span className='font-bold'>Rs. 10,000 or more</span> always get free shipping automatically — regardless of the settings above.
+              </div>
+
+              <button onClick={saveShipping} disabled={shippingLoading}
+                className='bg-green-700 text-white px-8 py-2 rounded-full font-semibold hover:bg-green-800 disabled:opacity-60 cursor-pointer w-fit'>
+                {shippingLoading ? 'Saving...' : 'Save Settings'}
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   )

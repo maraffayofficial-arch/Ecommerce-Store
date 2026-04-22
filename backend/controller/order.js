@@ -1,7 +1,15 @@
 import orderModel from "../model/order.js"
 import cartModel from "../model/cart.js"
+import settingsModel from "../model/settings.js"
 
-const SHIPPING_FEE = 199
+const FREE_SHIPPING_THRESHOLD = 10000
+
+const calcShipping = async (subtotal) => {
+    let s = await settingsModel.findOne()
+    if (!s) s = { shippingFee: 199, freeShipping: false }
+    if (s.freeShipping || subtotal >= FREE_SHIPPING_THRESHOLD) return 0
+    return s.shippingFee
+}
 
 const placeOrder = async (req, res) => {
     try {
@@ -20,7 +28,9 @@ const placeOrder = async (req, res) => {
             quantity: i.quantity
         }))
 
-        const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0) + SHIPPING_FEE
+        const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+        const shippingFee = await calcShipping(subtotal)
+        const totalAmount = subtotal + shippingFee
 
         const order = new orderModel({ userId: req.user._id, items, totalAmount, address, paymentMethod: paymentMethod || "cod", transactionId: transactionId || "", newsletterOptIn: !!newsletterOptIn })
         await order.save()
@@ -111,7 +121,9 @@ const placeGuestOrder = async (req, res) => {
         if (!rawItems || rawItems.length === 0) {
             return res.status(400).json({ success: false, message: "No items in order" })
         }
-        const totalAmount = rawItems.reduce((sum, i) => sum + i.price * i.quantity, 0) + SHIPPING_FEE
+        const subtotal = rawItems.reduce((sum, i) => sum + i.price * i.quantity, 0)
+        const shippingFee = await calcShipping(subtotal)
+        const totalAmount = subtotal + shippingFee
         const order = new orderModel({
             userId: null,
             guestOrder: true,

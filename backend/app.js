@@ -6,6 +6,7 @@ import cors from "cors"
 import userRouter from './routes/user.js'
 import cartRouter from './routes/cart.js'
 import orderRouter from './routes/order.js'
+import settingsRouter from './routes/settings.js'
 
 const app = express()
 
@@ -21,6 +22,7 @@ app.use("/product", productrouter)
 app.use("/user", userRouter)
 app.use("/cart", cartRouter)
 app.use("/order", orderRouter)
+app.use("/settings", settingsRouter)
 
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT}`)
