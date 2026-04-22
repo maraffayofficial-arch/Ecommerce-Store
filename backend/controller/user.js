@@ -51,21 +51,6 @@ const userLogin = async (req, res) => {
             return res.status(401).json({ success: false, message: "Incorrect password" })
         }
 
-        // Admin requires OTP step
-        if (user.role === 'admin') {
-            const otp = Math.floor(100000 + Math.random() * 900000).toString()
-            user.resetOtp = otp
-            user.resetOtpExpiry = new Date(Date.now() + 10 * 60 * 1000)
-            await user.save()
-            await sendOtpEmail(user.email, otp)
-            return res.status(200).json({
-                success: true,
-                requiresOtp: true,
-                email: user.email,
-                message: "OTP sent to admin email."
-            })
-        }
-
         const token = generateToken(user)
         return res.status(200).json({
             success: true,
