@@ -4,10 +4,12 @@ import dotenv from "dotenv"
 dotenv.config()
 
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp-relay.brevo.com",
+    port: 587,
+    secure: false,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.BREVO_USER,
+        pass: process.env.BREVO_PASS,
     },
 })
 
@@ -22,7 +24,7 @@ export const subscribe = async (req, res) => {
         await subscriberModel.create({ email })
 
         await transporter.sendMail({
-            from: `"Urban Pickle" <${process.env.EMAIL_USER}>`,
+            from: `"Urban Pickle" <${process.env.BREVO_USER}>`,
             to: email,
             subject: "Welcome to Urban Pickle Newsletter! 🥒",
             html: `
