@@ -74,7 +74,8 @@ const userLogin = async (req, res) => {
             user: { _id: user._id, email: user.email, name: user.name, role: user.role }
         })
     } catch (error) {
-        res.status(500).json({ message: "Error in userLogin Controller", error })
+        console.error("userLogin error:", error)
+        res.status(500).json({ message: "Error in userLogin Controller", error: error.message })
     }
 }
 
