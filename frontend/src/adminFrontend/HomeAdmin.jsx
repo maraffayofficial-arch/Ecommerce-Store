@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import { FaTrash, FaEdit, FaSignOutAlt, FaCloudUploadAlt, FaTimes, FaFileExcel } from 'react-icons/fa'
 import * as XLSX from 'xlsx'
 
-const emptyForm = { title: '', discription: '', price: '', weight: '', category: 'achar' }
+const emptyForm = { title: '', discription: '', price: '', weight: '', category: 'achar', discount: 0 }
 
 const HomeAdmin = () => {
   const [authUser] = useAuth()
@@ -118,6 +118,7 @@ const HomeAdmin = () => {
       formData.append("price", form.price)
       formData.append("weight", form.weight)
       formData.append("category", form.category)
+      formData.append("discount", form.discount || 0)
       selectedFiles.forEach(f => formData.append("images", f))
 
       const multipartHeader = {
@@ -150,6 +151,7 @@ const HomeAdmin = () => {
       price: product.price,
       weight: product.weight,
       category: product.category,
+      discount: product.discount || 0,
     })
     setEditId(product._id)
     setExistingImages(product.images || [])
@@ -311,6 +313,24 @@ const HomeAdmin = () => {
                 </div>
 
                 <div>
+                  <label className='text-sm font-semibold text-gray-600'>
+                    Discount (%) <span className='font-normal text-gray-400'>— 0 = no sale shown</span>
+                  </label>
+                  <div className='relative mt-1'>
+                    <input name="discount" value={form.discount} onChange={handleChange} type="number"
+                      min="0" max="100" placeholder='e.g. 20'
+                      className='w-full border rounded-lg px-3 py-2 outline-none focus:border-green-500 pr-8' />
+                    <span className='absolute right-3 top-2.5 text-gray-400 font-semibold'>%</span>
+                  </div>
+                  {Number(form.discount) > 0 && Number(form.price) > 0 && (
+                    <p className='text-xs text-green-700 mt-1 font-medium'>
+                      Sale price: Rs. {Math.round(form.price - (form.price * form.discount / 100))}
+                      <span className='text-gray-400 ml-1'>(was Rs. {form.price})</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
                   <label className='text-sm font-semibold text-gray-600'>Weight / Volume</label>
                   <input name="weight" value={form.weight} onChange={handleChange} required
                     placeholder='e.g. 500g'
@@ -402,6 +422,11 @@ const HomeAdmin = () => {
                   {/* Image strip */}
                   <div className='relative'>
                     <img src={p.images?.[0]} alt={p.title} className='w-full h-48 object-cover' />
+                    {p.discount > 0 && (
+                      <span className='absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full'>
+                        {p.discount}% OFF
+                      </span>
+                    )}
                     {p.images?.length > 1 && (
                       <span className='absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full'>
                         +{p.images.length - 1} more

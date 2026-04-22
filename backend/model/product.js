@@ -7,6 +7,7 @@ const productSchema = mongoose.Schema({
     price: { type: Number, required: true },
     category: { type: String, required: true },
     images: { type: [String], required: true },
+    discount: { type: Number, default: 0, min: 0, max: 100 },
 })
 
 const productModel = mongoose.model("product_collection", productSchema)

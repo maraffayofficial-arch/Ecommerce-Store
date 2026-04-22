@@ -63,12 +63,17 @@ const ProductDetail = () => {
 
           {/* Image Gallery */}
           <div className='flex flex-col gap-3'>
-            <div className='rounded-xl overflow-hidden bg-base-200'>
+            <div className='rounded-xl overflow-hidden bg-base-200 relative'>
               <img
                 src={images[activeImg]}
                 alt={product.title}
                 className='w-full h-80 sm:h-96 object-cover'
               />
+              {product.discount > 0 && (
+                <span className='absolute top-3 left-3 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full'>
+                  {product.discount}% OFF
+                </span>
+              )}
             </div>
             {images.length > 1 && (
               <div className='flex gap-2 flex-wrap'>
@@ -91,7 +96,17 @@ const ProductDetail = () => {
               <span className='text-gray-400 text-sm ml-2'>(50+ reviews)</span>
             </p>
 
-            <p className='text-green-700 text-3xl font-bold'>Rs. {product.price}</p>
+            {product.discount > 0 ? (
+              <div className='flex items-center gap-3 flex-wrap'>
+                <p className='text-green-700 text-3xl font-bold'>
+                  Rs. {Math.round(product.price - (product.price * product.discount / 100))}
+                </p>
+                <p className='text-gray-400 text-xl line-through'>Rs. {product.price}</p>
+                <span className='bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full'>{product.discount}% OFF</span>
+              </div>
+            ) : (
+              <p className='text-green-700 text-3xl font-bold'>Rs. {product.price}</p>
+            )}
 
             <div className='flex gap-3 flex-wrap'>
               <span className='bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold capitalize'>{product.category}</span>
